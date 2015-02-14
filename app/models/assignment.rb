@@ -1734,6 +1734,13 @@ class Assignment < ActiveRecord::Base
     submission_types == 'on_paper' || submission_types == 'external_tool'
   end
 
+  # Imperial College London: Cover Sheet
+  # The cover sheet feature will only be enabled
+  # when the submission type is on_paper
+  def expects_paper_submission?
+    submission_types == 'on_paper'
+  end
+
   def allow_google_docs_submission?
     self.submission_types &&
       self.submission_types.match(/online_upload/) &&

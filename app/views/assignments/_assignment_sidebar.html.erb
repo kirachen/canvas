@@ -1,19 +1,27 @@
 <div id="sidebar_content">
   <% if can_do(@assignment, @current_user, :grade) %>
-    <%= render :partial => "grade_assignment" %>
+  <%= render :partial => "grade_assignment" %>
   <% end %>
-
   <% if @current_user_submission %>
-    <%= render :partial => "submission_sidebar" %>
+  <%= render :partial => "submission_sidebar" %>
   <% elsif @assignment.expects_submission? && can_do(@assignment, @current_user, :submit) %>
-    <ul class="page-action-list">
-      <li>
-        <% late = @current_user_submission.try(:late?) ? "late" : "" %>
-        <a href="#" class="submit_assignment_link button-sidebar-wide <%= late %>">
-          <i class='icon-add'></i> <%= t 'links.submit', "Submit Assignment" %>
-        </a>
-      </li>
-    </ul>
+  <ul class="page-action-list">
+    <li>
+      <% late = @current_user_submission.try(:late?) ? "late" : "" %>
+      <a href="#" class="submit_assignment_link button-sidebar-wide <%= late %>">
+        <i class='icon-add'></i> <%= t 'links.submit', "Submit Assignment" %>
+      </a>
+    </li>
+  </ul>
+  <!-- Imperial College London: Cover Sheet -->
+  <% elsif @assignment.expects_paper_submission? %>
+  <ul class="page-action-list">
+    <li>
+      <a href="#" class="button-sidebar-wide%>">
+        Download Cover Page
+      </a>
+    </li>
+  </ul>
+  <!-- end -->
   <% end %>
-
 </div>
