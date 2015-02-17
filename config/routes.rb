@@ -6,6 +6,8 @@ Dir["{gems,vendor}/plugins/*/config/pre_routes.rb"].each { |pre_routes|
 }
 
 CanvasRails::Application.routes.draw do
+  get "icl_project_portal/show"
+
   resources :submission_comments, only: :destroy
 
   get 'inbox' => 'context#inbox'
