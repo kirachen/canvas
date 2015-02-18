@@ -1,2 +1,10 @@
-<h1>IclProjectPortal#show</h1>
-<p>Find me in app/views/icl_project_portal/show.html.erb</p>
+<h1>Project Portal</h1>
+<table>
+<%  @projects.each do |project| %>
+  <tr>
+    <td> <%= project.title %> </td>
+    <td> <%= project.description %> </td>
+  </tr>
+<% end %>
+</table>
+
