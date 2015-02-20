@@ -730,6 +730,25 @@ class RoleOverride < ActiveRecord::Base
         :label => lambda { t('permissions.view_quiz_answer_audits', 'View the answer matrix in Quiz Submission Logs')},
         :true_for => %w(AccountAdmin),
         :available_to => %w(AccountAdmin AccountMembership)
+      },
+      :manage_project_portal => {
+        :label => lambda { t('permissions.manage_project_portal', "Manage the project portal") },
+        :available_to => [
+          'StudentEnrollment',
+          'TaEnrollment',
+          'DesignerEnrollment',
+          'TeacherEnrollment',
+          'TeacherlessStudentEnrollment',
+          'ObserverEnrollment',
+          'AccountAdmin',
+          'AccountMembership'
+        ],
+        :true_for => [
+          'TaEnrollment',
+          'DesignerEnrollment',
+          'TeacherEnrollment',
+          'AccountAdmin'
+        ]
       }
     })
 

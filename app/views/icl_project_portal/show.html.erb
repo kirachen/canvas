@@ -1,10 +1,36 @@
 <h1>Project Portal</h1>
+
+<% if can_do @current_user, @current_user, :manage_project_portal %>
+<h3>Add New Project</h3>
 <table>
-<%  @projects.each do |project| %>
-  <tr>
-    <td> <%= project.title %> </td>
-    <td> <%= project.description %> </td>
-  </tr>
+<%= form_tag(controller: "icl_project_portal", action: "create", method: "get") do %>
+  <%= label_tag(:title, "Project Title:") %>
+  <br />
+  <%= text_field_tag(:title, nil, :class => 'course_form') %>
+  <br />
+  <%= label_tag(:description, "Project Description:") %>
+  <br />
+  <%= text_area_tag(:description, nil, :cols => 5, :rows => 10, :class => "span4") %>
+  <br />
+  <%= submit_tag("Create Project", :class => 'btn btn-primary') %>
 <% end %>
 </table>
+<% end %>
+
+<h3>Current Projects</h3>
+  <div id="projects">
+  <% @projects.each do |project| %>
+  
+    <h4> <%= project.title %> </h4>
+    <div>
+    <p>
+    <%= project.description %>
+    </p>
+    </div>
+  
+  <% end %>
+</div>
+  
+
+
 
