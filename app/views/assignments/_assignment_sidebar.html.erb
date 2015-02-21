@@ -17,9 +17,19 @@
   <% elsif @assignment.expects_paper_submission? %>
   <ul class="page-action-list">
     <li>
-      <a href="#" class="button-sidebar-wide%>">
-        Download Cover Page
-      </a>
+      <%= link_to (raw("<i class='icon-add'></i> Download Coversheet")),
+          cover_sheet_course_assignment_path(
+	  :student_name => @current_user.sortable_name,
+          :student_id => @current_user.all_active_pseudonyms.first.unique_id,
+          :course_title => @context.name,
+          :course_code => @context.course_code,
+          :exercise_title => @assignment.name,
+          :exercise_id => @assignment.id,
+          :issued_date => @assignment.unlock_at,
+          :due_date => @assignment.due_at,
+          :assessment_type => @assignment.group_category_id,
+          ),
+          :class => "button-sidebar-wide" %>
     </li>
   </ul>
   <!-- end -->

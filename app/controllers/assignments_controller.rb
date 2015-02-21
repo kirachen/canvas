@@ -471,6 +471,39 @@ class AssignmentsController < ApplicationController
     end
   end
 
+  def cover_sheet
+    require 'date'
+    require 'time'
+    require 'net/http'
+    require 'uri'
+    assessment_type = "Individual"
+    if params[:assessment_type] != nil
+      assessment_type = "Group"
+    end
+    cover_sheet_name = params[:student_id] + params[:course_id] + params[:exercise_id] + ".pdf"
+    #enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first +    @teacher = User.find(@enrollment.user_id)
+    cover_sheet = Icl_cover_sheet.new(
+        params[:student_name], 
+        params[:student_id], 
+        "c4", 
+        "Peter Mcbrien", 
+        "pjm", 
+        params[:course_title], 
+        params[:course_code], 
+        params[:exercise_title], 
+        params[:exercise_id], 
+        Time.parse(params[:issued_date]), 
+        Time.parse(params[:due_date]), 
+        assessment_type)
+    cover_sheet.generate_cover_sheet
+    cover_sheet_file = Rails.root.join('app', 'icl_coversheet', cover_sheet_name)
+    cover_sheet.save_as (cover_sheet_file.to_s)
+    File.open(cover_sheet_file, 'r') do |f|
+      send_data f.read.force_encoding('BINARY'), :type => "application/pdf", :filename => cover_sheet_name
+    end
+    File.delete(cover_sheet_file)
+  end
+
   protected
 
   def get_assignment_group(assignment_params)
