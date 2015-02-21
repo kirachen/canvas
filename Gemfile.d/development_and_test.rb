@@ -4,5 +4,8 @@ group :development, :test do
   gem 'execjs', '1.4.0'
   gem 'hashdiff', '0.2.0'
   gem 'parallel', '0.5.16'
+  # Imperial College London: Cover Sheet
+  # Prawn is needed for PDF generation
+   gem 'prawn'
 end
 
