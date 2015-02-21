@@ -1,6 +1,6 @@
 <h1>Project Portal</h1>
 
-<% if can_do @current_user, @current_user, :manage_project_portal %>
+<% #if can_do @current_user, @current_user, :manage_project_portal %>
 <h3>Add New Project</h3>
 <table>
 <%= form_tag(controller: "icl_project_portal", action: "create", method: "get") do %>
@@ -15,7 +15,7 @@
   <%= submit_tag("Create Project", :class => 'btn btn-primary') %>
 <% end %>
 </table>
-<% end %>
+<% #end %>
 
 <h3>Current Projects</h3>
   <div id="projects">
