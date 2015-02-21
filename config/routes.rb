@@ -231,6 +231,12 @@ CanvasRails::Application.routes.draw do
         get :syllabus
         get :submissions
       end
+      
+      # Imperial College London: Cover Sheet
+      # Adding route mapping to cover sheet download
+      member do
+        get 'cover_sheet'
+      end
 
       member do
         get :list_google_docs
