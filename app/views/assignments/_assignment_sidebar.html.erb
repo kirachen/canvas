@@ -14,11 +14,12 @@
     </li>
   </ul>
   <!-- Imperial College London: Cover Sheet -->
-  <% elsif @assignment.expects_paper_submission? %>
+  <% elsif @assignment.expects_paper_submission? and !@locked and @context.user_is_student?(@current_user)%>
   <ul class="page-action-list">
     <li>
-      <%= link_to (raw("<i class='icon-add'></i> Download Coversheet")),
+      <%= link_to (raw("<i class='icon-document'></i> Download Coversheet")),
           cover_sheet_course_assignment_path(
+	  :course_id => @context.id,
 	  :student_name => @current_user.sortable_name,
           :student_id => @current_user.all_active_pseudonyms.first.unique_id,
           :course_title => @context.name,

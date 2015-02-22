@@ -471,6 +471,9 @@ class AssignmentsController < ApplicationController
     end
   end
 
+  # Imperial College London: Cover Sheet
+  # Coversheets will be generated under /app/icl_coversheet
+  # and once the pdf is finished downloading, it gets removed
   def cover_sheet
     require 'date'
     require 'time'
@@ -480,20 +483,25 @@ class AssignmentsController < ApplicationController
     if params[:assessment_type] != nil
       assessment_type = "Group"
     end
-    cover_sheet_name = params[:student_id] + params[:course_id] + params[:exercise_id] + ".pdf"
-    #enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first +    @teacher = User.find(@enrollment.user_id)
+    issued_date, issued_time = params[:issued_date].split(" ")
+    issued_at = Time.parse(issued_date + " " + issued_time)
+    due_date, due_time = params[:due_date].split(" ")
+    due_at = Time.parse(due_date + " " + due_time)
+    cover_sheet_name = params[:student_id] + params[:course_code] + params[:exercise_id] + ".pdf"
+    enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first
+    teacher = User.find(enrollment.user_id)
     cover_sheet = Icl_cover_sheet.new(
         params[:student_name], 
         params[:student_id], 
-        "c4", 
-        "Peter Mcbrien", 
-        "pjm", 
+        "c4", # This grouping will happen after feature Student Grouping
+        teacher.name, 
+        teacher.all_active_pseudonyms.first.unique_id, 
         params[:course_title], 
         params[:course_code], 
         params[:exercise_title], 
         params[:exercise_id], 
-        Time.parse(params[:issued_date]), 
-        Time.parse(params[:due_date]), 
+        issued_at, 
+        due_at, 
         assessment_type)
     cover_sheet.generate_cover_sheet
     cover_sheet_file = Rails.root.join('app', 'icl_coversheet', cover_sheet_name)

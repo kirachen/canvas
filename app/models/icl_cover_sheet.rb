@@ -110,11 +110,12 @@ class Icl_cover_sheet
   
   def print_sort_info
     divider = "   "
-    bounding_box([220, 60], :width => 100, :height => 60) do
+    bounding_box([0, 60], :width => 320, :height => 30) do
       move_down(10)
-      text @course_id + divider + @lecturer_id + divider + @exercise_id, :size =>18, :align => :center
-      move_down(5)
-      text @student_class + divider + @student_id + divider, :size => 18, :align => :center
+      text_box @course_id + divider + @lecturer_id + divider + @exercise_id, :size =>18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
+    end
+    bounding_box([0, 30], :width => 320, :height => 30) do
+      text_box @student_class + divider + @student_id + divider, :size => 18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
     end
     bounding_box([320, 60], :width => 250, :height => 60) do
       barcode_string = @year + @student_id + @course_id + @exercise_id
