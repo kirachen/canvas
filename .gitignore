@@ -63,3 +63,7 @@ Gemfile.lock4
 # canvas-gems
 /gems/*/coverage
 /gems/*/tmp
+
+# Imperial College London
+*.*~
+start_server.sh
