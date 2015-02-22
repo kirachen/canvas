@@ -9,7 +9,7 @@ class Icl_cover_sheet
 
   include Prawn::View
 
-  def initialize(student_name, student_id, student_class, lecturer_name, lecturer_id, course_title, course_id, exercise_title, exercise_id, issued_date, due_date, assessment_type)
+  def initialize(student_name, student_id, student_class, lecturer_name, lecturer_id, course_title, course_id, exercise_title, exercise_id, issued_date, due_date, assessment_type, group_members)
     @student_name = student_name
     @student_id = student_id
     @student_class = student_class
@@ -22,7 +22,9 @@ class Icl_cover_sheet
     @issued_date = issued_date
     @due_date = due_date
     @assessment_type = assessment_type
+    @group_members = group_members
     @year, @next_year = get_academic_year(Date.today)
+    @rubric_line_y = 350
     font "Times-Roman"
   end
   
@@ -86,38 +88,46 @@ class Icl_cover_sheet
     line [350, 380], [520, 380]
     stroke
   end
-  
+
   def print_rubric
-    row_height = 25
-    bounding_box([20, 350], :width => 150, :height => row_height) do
-      text_box @student_name, :align => :center, :valign => :center, :width => 150, :height => 30, :overflow => :expand
-      stroke_bounds
-    end
-    bounding_box([170, 350], :width => 60, :height => row_height) do
-      text_box @student_id, :align => :center, :valign => :center, :width => 60, :height => 30, :overflow => :expand
-      stroke_bounds
-    end
-    bounding_box([230, 350], :width => 40, :height => row_height) do
-      text_box @student_class, :align => :center, :valign => :center, :width => 40, :height => 30, :overflow => :expand
-      stroke_bounds
-    end
-    divider = "      "
-    bounding_box([270, 350], :width => 250, :height => row_height) do
-      formatted_text [{ :text => "A*" + divider + "A+" + divider + "A" + divider + "B" + divider + "C" + divider, :color => "0000FF"}, { :text => "D" + divider, :color => "FF00FF"}, { :text => "E" + divider + "F", :color => "DC143C"}], :align => :center, :valign => :center
-      stroke_bounds
+    print_rubric_for_student(@student_name, @student_id, @student_class)
+    @group_members.each do |student|
+      print_rubric_for_student(student["name"], student["id"], student["class"])
     end
   end 
   
+  def print_rubric_for_student(student_name, student_id, student_class)
+    row_height = 25
+    bounding_box([20, @rubric_line_y], :width => 150, :height => row_height) do
+      text_box student_name, :align => :center, :valign => :center, :width => 150, :height => 30, :overflow => :expand
+      stroke_bounds
+    end
+    bounding_box([170, @rubric_line_y], :width => 60, :height => row_height) do
+      text_box student_id, :align => :center, :valign => :center, :width => 60, :height => 30, :overflow => :expand
+      stroke_bounds
+    end
+    bounding_box([230, @rubric_line_y], :width => 40, :height => row_height) do
+      text_box student_class, :align => :center, :valign => :center, :width => 40, :height => 30, :overflow => :expand
+      stroke_bounds
+    end
+    divider = "      "
+    bounding_box([270, @rubric_line_y], :width => 250, :height => row_height) do
+      formatted_text [{ :text => "A*" + divider + "A+" + divider + "A" + divider + "B" + divider + "C" + divider, :color => "0000FF"}, { :text => "D" + divider, :color => "FF00FF"}, { :text => "E" + divider + "F", :color => "DC143C"}], :align => :center, :valign => :center
+      stroke_bounds
+    end
+    @rubric_line_y = @rubric_line_y - row_height
+  end
+  
   def print_sort_info
     divider = "   "
-    bounding_box([0, 60], :width => 320, :height => 30) do
+    bounding_box([0, 60], :width => 540, :height => 30) do
       move_down(10)
       text_box @course_id + divider + @lecturer_id + divider + @exercise_id, :size =>18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
     end
-    bounding_box([0, 30], :width => 320, :height => 30) do
+    bounding_box([0, 30], :width => 540, :height => 30) do
       text_box @student_class + divider + @student_id + divider, :size => 18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
     end
-    bounding_box([320, 60], :width => 250, :height => 60) do
+    bounding_box([0, 60], :width => 540, :height => 60) do
       barcode_string = @year + @student_id + @course_id + @exercise_id
       barcode_pos = {:x => 10, :y => 0, :height => 60}
       barcode = Barby::Code128B.new barcode_string

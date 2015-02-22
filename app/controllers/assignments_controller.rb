@@ -475,13 +475,22 @@ class AssignmentsController < ApplicationController
   # Coversheets will be generated under /app/icl_coversheet
   # and once the pdf is finished downloading, it gets removed
   def cover_sheet
-    require 'date'
     require 'time'
-    require 'net/http'
-    require 'uri'
     assessment_type = "Individual"
-    if params[:assessment_type] != nil
+    group_members = []
+    if params[:assignment_group_category_id] != nil
       assessment_type = "Group"
+      @current_user.current_groups.each do |group|
+        if group.group_category.id.to_s == params[:assignment_group_category_id]
+          memberships = GroupMembership.active.where(:group_id => group.id)
+          memberships.each do |membership|
+            user = User.find(membership.user_id)
+            if user.all_active_pseudonyms.first.unique_id != @current_user.all_active_pseudonyms.first.unique_id
+              group_members.push({"name" => user.sortable_name, "id" => user.all_active_pseudonyms.first.unique_id, "class" => "c4"})
+            end
+          end
+	end
+      end
     end
     issued_date, issued_time = params[:issued_date].split(" ")
     issued_at = Time.parse(issued_date + " " + issued_time)
@@ -490,6 +499,7 @@ class AssignmentsController < ApplicationController
     cover_sheet_name = params[:student_id] + params[:course_code] + params[:exercise_id] + ".pdf"
     enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first
     teacher = User.find(enrollment.user_id)
+    
     cover_sheet = Icl_cover_sheet.new(
         params[:student_name], 
         params[:student_id], 
@@ -502,7 +512,8 @@ class AssignmentsController < ApplicationController
         params[:exercise_id], 
         issued_at, 
         due_at, 
-        assessment_type)
+        assessment_type,
+        group_members)
     cover_sheet.generate_cover_sheet
     cover_sheet_file = Rails.root.join('app', 'icl_coversheet', cover_sheet_name)
     cover_sheet.save_as (cover_sheet_file.to_s)
