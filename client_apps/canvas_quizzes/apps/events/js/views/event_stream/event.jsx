@@ -68,18 +68,28 @@ define(function(require) {
       var label;
 
       switch(event.type) {
+        case K.EVT_SESSION_STARTED:
+          description = I18n.t('session_started', 'Session started');
+        break;
+
         case K.EVT_QUESTION_ANSWERED:
+          var valid_answers = event.data.filter(function(i) {
+            return (i.answer != null);
+          })
+          if(valid_answers.length == 0) {
+            break;
+          }
           label = I18n.t('question_answered', {
             one: 'Answered question:',
             other: 'Answered the following questions:'
-          }, { count: event.data.length });
+          }, { count: valid_answers.length });
 
           description = (
             <div>
               {label}
 
               <div className="ic-QuestionAnchors">
-                {event.data.map(this.renderQuestionAnchor)}
+                {valid_answers.map(this.renderQuestionAnchor)}
               </div>
             </div>
           );
@@ -112,7 +122,7 @@ define(function(require) {
         break;
 
         case K.EVT_QUESTION_FLAGGED:
-          if (event.flagged) {
+          if (event.data.flagged) {
             label = I18n.t('question_flagged', 'Flagged question:');
           }
           else {
@@ -152,7 +162,8 @@ define(function(require) {
       return (
         <Link
           key={"question-anchor"+id}
-          to={"/questions/"+id}
+          to="question"
+          params={{id: id}}
           className="ic-QuestionAnchors__Anchor"
           query={{ event: this.props.id, attempt: this.props.attempt }}
           children={'#'+position} />

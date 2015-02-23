@@ -52,6 +52,8 @@ describe SisImportsApiController, type: :request do
     json.delete("updated_at")
     expect(json.has_key?("ended_at")).to be_truthy
     json.delete("ended_at")
+    expect(json.has_key?("started_at")).to eq true
+    json.delete("started_at")
     if opts[:batch_mode_term_id]
       expect(json["batch_mode_term_id"]).not_to be_nil
     end
@@ -87,6 +89,8 @@ describe SisImportsApiController, type: :request do
     json.delete("updated_at")
     expect(json.has_key?("ended_at")).to be_truthy
     json.delete("ended_at")
+    expect(json.has_key?("started_at")).to eq true
+    json.delete("started_at")
     batch = SisBatch.last
     expect(json).to eq({
           "data" => { "import_type"=>"instructure_csv"},
@@ -115,6 +119,8 @@ describe SisImportsApiController, type: :request do
     json.delete("updated_at")
     expect(json.has_key?("ended_at")).to be_truthy
     json.delete("ended_at")
+    expect(json.has_key?("started_at")).to eq true
+    json.delete("started_at")
     expect(json).to eq({
           "data" => { "import_type" => "instructure_csv",
                       "supplied_batches" => ["user"],
@@ -499,6 +505,7 @@ describe SisImportsApiController, type: :request do
     json["sis_imports"].first.delete("created_at")
     json["sis_imports"].first.delete("updated_at")
     json["sis_imports"].first.delete("ended_at")
+    json["sis_imports"].first.delete("started_at")
 
     expect(json).to eq({"sis_imports"=>[{
                       "data" => { "import_type" => "instructure_csv",
@@ -523,6 +530,21 @@ describe SisImportsApiController, type: :request do
           "add_sis_stickiness" => nil,
           "clear_sis_stickiness" => nil }]
     })
+  end
+
+  it "should filter sis imports by date if requested" do
+    batch = @account.sis_batches.create
+    json = api_call(:get, "/api/v1/accounts/#{@account.id}/sis_imports.json",
+                    { :controller => 'sis_imports_api', :action => 'index',
+                      :format => 'json', :account_id => @account.id.to_s, :created_since => 1.day.from_now.iso8601 })
+
+    expect(json["sis_imports"].count).to eq 0
+
+    json = api_call(:get, "/api/v1/accounts/#{@account.id}/sis_imports.json",
+                    { :controller => 'sis_imports_api', :action => 'index',
+                      :format => 'json', :account_id => @account.id.to_s, :created_since => 1.day.ago.iso8601 })
+
+    expect(json["sis_imports"].count).to eq 1
   end
 
   it "should not fail when options are nil" do

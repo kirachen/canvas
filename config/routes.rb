@@ -175,6 +175,8 @@ CanvasRails::Application.routes.draw do
 
     get 'undelete' => 'context#undelete_index', as: :undelete_items
     post 'undelete/:asset_string' => 'context#undelete_item', as: :undelete_item
+
+    get "settings#{full_path_glob}", action: :settings
     get :settings
     get 'details' => 'courses#settings'
     post :re_send_invitations
@@ -294,7 +296,7 @@ CanvasRails::Application.routes.draw do
           get :record_answer
           post :record_answer
         end
-        resources :events, controller: 'quizzes/quiz_submission_events', path: :log
+        resources :events, controller: 'quizzes/quiz_submission_events', path: "log#{full_path_glob}"
       end
 
       post 'extensions/:user_id' => 'quizzes/quiz_submissions#extensions', as: :extensions
@@ -468,6 +470,7 @@ CanvasRails::Application.routes.draw do
   end
 
   resources :accounts do
+    get "settings#{full_path_glob}", action: :settings
     get :settings
     get :admin_tools
     post 'account_users' => 'accounts#add_account_user', as: :add_account_user
@@ -491,7 +494,7 @@ CanvasRails::Application.routes.draw do
       end
     end
 
-    resources :terms
+    resources :terms, except: [:show, :new, :edit]
     resources :sub_accounts
 
     get :avatars
@@ -521,8 +524,10 @@ CanvasRails::Application.routes.draw do
     resources :external_tools do
       get :finished
       get :resource_selection
+      collection do
+        get :retrieve
+      end
     end
-
 
     get 'lti/basic_lti_launch_request/:message_handler_id', controller: 'lti/message', action: 'basic_lti_launch_request', as: :basic_lti_launch_request
     get 'lti/tool_proxy_registration', controller: 'lti/message', action: 'registration', as: :tool_proxy_registration
@@ -760,6 +765,9 @@ CanvasRails::Application.routes.draw do
 
   get 'courses/:course_id/outcome_rollups' => 'outcome_results#rollups', as: 'course_outcome_rollups'
 
+  get 'terms_of_use' => 'legal_information#terms_of_use', as: 'terms_of_use_redirect'
+  get 'privacy_policy' => 'legal_information#privacy_policy', as: 'privacy_policy_redirect'
+
   ### API routes ###
 
   # TODO: api routes can't yet take advantage of concerns for DRYness, because of
@@ -798,6 +806,8 @@ CanvasRails::Application.routes.draw do
 
       get 'courses/:course_id/link_validation', action: :link_validation
       post 'courses/:course_id/link_validation', action: :start_link_validation
+
+      post 'courses/:course_id/reset_content', :action => :reset_content
     end
 
     scope(controller: :account_notifications) do
@@ -837,6 +847,12 @@ CanvasRails::Application.routes.draw do
 
     scope(controller: :terms_api) do
       get 'accounts/:account_id/terms', action: :index, as: 'enrollment_terms'
+    end
+
+    scope(controller: :terms) do
+      post 'accounts/:account_id/terms', action: :create
+      put 'accounts/:account_id/terms/:id', action: :update
+      delete 'accounts/:account_id/terms/:id', action: :destroy
     end
 
     scope(controller: :authentication_audit_api) do
@@ -884,6 +900,7 @@ CanvasRails::Application.routes.draw do
         post "#{context.pluralize}/:#{context}_id/assignments/:assignment_id/submissions", action: :create, controller: :submissions
         post "#{context.pluralize}/:#{context}_id/assignments/:assignment_id/submissions/:user_id/files", action: :create_file
         put "#{context.pluralize}/:#{context}_id/assignments/:assignment_id/submissions/:user_id", action: :update
+        post "#{context.pluralize}/:#{context}_id/assignments/:assignment_id/submissions/update_grades", action: :bulk_update
       end
       submissions_api("course")
       submissions_api("section", "course_section")
@@ -1089,6 +1106,7 @@ CanvasRails::Application.routes.draw do
       post 'accounts/:account_id/roles/:id/activate', action: :activate_role
       put 'accounts/:account_id/roles/:id', action: :update
       delete 'accounts/:account_id/roles/:id', action: :remove_role
+      get 'accounts/:account_id/permissions/:permission', action: :check_account_permission
     end
 
     scope(controller: :account_reports) do

@@ -192,6 +192,8 @@ class Quizzes::QuizzesController < ApplicationController
         upload_url = api_v1_quiz_submission_files_path(:course_id => @context.id, :quiz_id => @quiz.id)
         js_env :UPLOAD_URL => upload_url
         js_env :SUBMISSION_VERSIONS_URL => course_quiz_submission_versions_url(@context, @quiz) unless @quiz.muted?
+        events_url = api_v1_course_quiz_submission_events_url(@context, @quiz, @submission)
+        js_env QUIZ_SUBMISSION_EVENTS_URL: events_url unless @js_env[:QUIZ_SUBMISSION_EVENTS_URL]
       end
 
       setup_attachments
@@ -209,8 +211,8 @@ class Quizzes::QuizzesController < ApplicationController
       js_env(hash)
 
       @quiz_menu_tools = external_tools_display_hashes(:quiz_menu)
+      if params[:take] && (@can_take = can_take_quiz?)
 
-      if params[:take] && can_take_quiz?
         # allow starting the quiz via a GET request, but only when using a lockdown browser
         if request.post? || (@quiz.require_lockdown_browser? && !quiz_submission_active?)
           start_quiz!
@@ -263,16 +265,37 @@ class Quizzes::QuizzesController < ApplicationController
         [qqr.quiz_question_id, qqr.regrade_option]
       end]
       sections = @context.course_sections.active
-      hash = { :ASSIGNMENT_ID => @assigment.present? ? @assignment.id : nil,
-             :ASSIGNMENT_OVERRIDES => assignment_overrides_json(@quiz.overrides_for(@current_user)),
-             :DIFFERENTIATED_ASSIGNMENTS_ENABLED => @context.feature_enabled?(:differentiated_assignments),
-             :QUIZ => quiz_json(@quiz, @context, @current_user, session),
-             :SECTION_LIST => sections.map { |section| { :id => section.id, :name => section.name } },
-             :QUIZZES_URL => course_quizzes_url(@context),
-             :QUIZ_IP_FILTERS_URL => api_v1_course_quiz_ip_filters_url(@context, @quiz),
-             :CONTEXT_ACTION_SOURCE => :quizzes,
-             :REGRADE_OPTIONS => regrade_options,
-             :quiz_max_combination_count => QUIZ_MAX_COMBINATION_COUNT }
+
+      hash = {
+        :ASSIGNMENT_ID => @assigment.present? ? @assignment.id : nil,
+        :ASSIGNMENT_OVERRIDES => assignment_overrides_json(@quiz.overrides_for(@current_user)),
+        :DIFFERENTIATED_ASSIGNMENTS_ENABLED => @context.feature_enabled?(:differentiated_assignments),
+        :QUIZ => quiz_json(@quiz, @context, @current_user, session),
+        :SECTION_LIST => sections.map { |section|
+          {
+            :id => section.id,
+            :name => section.name,
+            :start_at => section.start_at,
+            :end_at => section.end_at,
+            :override_course_dates => section.restrict_enrollments_to_section_dates
+          }
+        },
+        :QUIZZES_URL => course_quizzes_url(@context),
+        :QUIZ_IP_FILTERS_URL => api_v1_course_quiz_ip_filters_url(@context, @quiz),
+        :CONTEXT_ACTION_SOURCE => :quizzes,
+        :REGRADE_OPTIONS => regrade_options,
+        :quiz_max_combination_count => QUIZ_MAX_COMBINATION_COUNT,
+        :COURSE_DATE_RANGE => {
+          :start_at => @context.start_at,
+          :end_at => @context.conclude_at,
+          :override_term_dates => @context.restrict_enrollments_to_course_dates
+        },
+        :TERM_DATE_RANGE => {
+          :start_at => @context.enrollment_term.start_at,
+          :end_at => @context.enrollment_term.end_at
+        }
+      }
+
       append_sis_data(hash)
       js_env(hash)
       render :action => "new"
@@ -300,7 +323,7 @@ class Quizzes::QuizzesController < ApplicationController
         params[:quiz][:assignment_id] = nil unless @assignment
         params[:quiz][:title] = @assignment.title if @assignment
       end
-      if params[:assignment]
+      if params[:assignment] && @context.feature_enabled?(:post_grades)
         @quiz.assignment.post_to_sis = params[:assignment][:post_to_sis]
         @quiz.assignment.save
       end
@@ -355,11 +378,11 @@ class Quizzes::QuizzesController < ApplicationController
           if @quiz.assignment.present?
             old_assignment = @quiz.assignment.clone
             old_assignment.id = @quiz.assignment.id
-          end
 
-          if params[:assignment]
-            @quiz.assignment.post_to_sis = params[:assignment][:post_to_sis]
-            @quiz.assignment.save
+            if params[:assignment] && @context.feature_enabled?(:post_grades)
+              @quiz.assignment.post_to_sis = params[:assignment][:post_to_sis]
+              @quiz.assignment.save
+            end
           end
 
           auto_publish = @quiz.published?
@@ -816,9 +839,8 @@ class Quizzes::QuizzesController < ApplicationController
       redirect_to course_quiz_url(@context, @quiz) and return
     end
 
-    js_env({
-      :QUIZ_SUBMISSION_EVENTS_URL => api_v1_course_quiz_submission_events_url(@context, @quiz, @submission)
-    })
+    events_url = api_v1_course_quiz_submission_events_url(@context, @quiz, @submission)
+    js_env QUIZ_SUBMISSION_EVENTS_URL: events_url unless @js_env[:QUIZ_SUBMISSION_EVENTS_URL]
 
     @quiz_presenter = Quizzes::TakeQuizPresenter.new(@quiz, @submission, params)
     render :action => 'take_quiz'
@@ -844,7 +866,12 @@ class Quizzes::QuizzesController < ApplicationController
     elsif @quiz.ip_filter && !@quiz.valid_ip?(request.remote_ip)
       render :action => 'invalid_ip'
       false
-    elsif @context.soft_concluded?
+    elsif @section.present? && @section.restrict_enrollments_to_section_dates && @section.end_at < Time.now
+      false
+    elsif @context.restrict_enrollments_to_course_dates && @context.soft_concluded?
+      false
+    elsif @current_user.present? && @context.present? &&
+          @context.enrollments.where(user_id: @current_user.id).all? {|e| e.inactive? }
       false
     else
       true

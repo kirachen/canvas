@@ -51,11 +51,26 @@ describe DiscussionTopicsController do
       get 'index', :course_id => @course.id
       assert_unauthorized
     end
+
+    it "should require the course to be published for students" do
+      @course.claim
+      user_session(@student)
+      get 'index', :course_id => @course.id
+      assert_unauthorized
+    end
   end
 
   describe "GET 'show'" do
     it "should require authorization" do
       course_topic
+      get 'show', :course_id => @course.id, :id => @topic.id
+      assert_unauthorized
+    end
+
+    it "should require the course to be published for students" do
+      course_topic
+      @course.claim
+      user_session(@student)
       get 'show', :course_id => @course.id, :id => @topic.id
       assert_unauthorized
     end
@@ -248,6 +263,15 @@ describe DiscussionTopicsController do
 
     end
 
+  end
+
+  describe "GET 'new'" do
+    it "should maintain date and time when passed params" do
+      user_session(@teacher)
+      due_at = 1.day.from_now
+      get 'new', course_id: @course.id, due_at: due_at.iso8601
+      expect(assigns[:js_env][:DISCUSSION_TOPIC][:ATTRIBUTES][:assignment][:due_at]).to eq due_at.iso8601
+    end
   end
 
   describe "GET 'public_feed.atom'" do

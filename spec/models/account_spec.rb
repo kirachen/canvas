@@ -426,7 +426,7 @@ describe Account do
     end
 
     limited_access = [ :read, :manage, :update, :delete, :read_outcomes ]
-    account_enabled_access = [ :view_notifications ]
+    account_enabled_access = [ :view_notifications, :manage_catalog ]
     full_access = RoleOverride.permissions.keys + limited_access - account_enabled_access + [:create_courses]
     siteadmin_access = [:app_profiling]
     full_root_access = full_access - RoleOverride.permissions.select { |k, v| v[:account_only] == :site_admin }.map(&:first)
@@ -739,6 +739,11 @@ describe Account do
       expect(@account.tabs_available(nil)).to include(mock_tab)
     end
 
+    it 'uses :manage_assignments to determine question bank tab visibility' do
+      account_admin_user_with_role_changes(acccount: @account, role_changes: { manage_assignments: true, manage_grades: false})
+      tabs = @account.tabs_available(@admin)
+      expect(tabs.map{|t| t[:id] }).to be_include(Account::TAB_QUESTION_BANKS)
+    end
   end
 
   describe "fast_all_users" do
@@ -1169,6 +1174,41 @@ describe Account do
     it 'should be false when the account has empty trusted referer setting' do
       account.settings[:trusted_referers] = ''
       expect(account.trusted_referer?('https://example.com')).to be_falsey
+    end
+  end
+
+  context "quota cache" do
+    it "should only clear the quota cache if something changes" do
+      account = account_model
+
+      Account.expects(:invalidate_quota_caches).once
+
+      account.default_storage_quota = 10.megabytes
+      account.save! # clear here
+
+      account.reload
+      account.save!
+
+      account.default_storage_quota = 10.megabytes
+      account.save!
+    end
+
+    it "should inherit from a parent account's default_storage_quota" do
+      enable_cache do
+        account = account_model
+        subaccount = account.sub_accounts.create!
+
+        account.default_storage_quota = 10.megabytes
+        account.save!
+
+        expect(subaccount.default_storage_quota).to eq 10.megabytes
+
+        # should reload
+        account.default_group_storage_quota = 20.megabytes
+        account.save!
+
+        expect(subaccount.default_storage_quota).to eq 10.megabytes
+      end
     end
   end
 end

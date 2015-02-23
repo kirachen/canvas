@@ -265,23 +265,24 @@ define([
     return {raw: raw, formatted: formatted};
   }
 
+  // xsslint safeString.identifier MENU_PARTS_DELIMITER
   var MENU_PARTS_DELIMITER = '----☃----'; // something random and unlikely to be in a person's name
 
   function initDropdown(){
     var hideStudentNames = utils.shouldHideStudentNames();
     $("#hide_student_names").attr('checked', hideStudentNames);
-    var options = $.map(jsonData.studentsWithSubmissions, function(s, idx){
-      var name = htmlEscape(s.name).replace(MENU_PARTS_DELIMITER, ""),
+    var optionsHtml = $.map(jsonData.studentsWithSubmissions, function(s, idx){
+      var name = s.name.replace(MENU_PARTS_DELIMITER, ""),
           className = classNameBasedOnStudent(s);
 
       if(hideStudentNames) {
         name = I18n.t('nth_student', "Student %{n}", {'n': idx + 1});
       }
 
-      return '<option value="' + s.id + '" class="' + className.raw + ' ui-selectmenu-hasIcon">' + name + MENU_PARTS_DELIMITER + className.formatted + MENU_PARTS_DELIMITER + className.raw + '</option>';
+      return '<option value="' + s.id + '" class="' + htmlEscape(className.raw) + ' ui-selectmenu-hasIcon">' + htmlEscape(name) + MENU_PARTS_DELIMITER + htmlEscape(className.formatted) + MENU_PARTS_DELIMITER + htmlEscape(className.raw) + '</option>';
     }).join("");
 
-    $selectmenu = $("<select id='students_selectmenu'>" + options + "</select>")
+    $selectmenu = $("<select id='students_selectmenu'>" + optionsHtml + "</select>")
       .appendTo("#combo_box_container")
       .selectmenu({
         style:'dropdown',
@@ -293,6 +294,7 @@ define([
         EG.handleStudentChanged();
       });
 
+    // xsslint safeString.function getIcon
     function getIcon(helper_text){
       var icon = "<span class='ui-selectmenu-item-icon speedgrader-selectmenu-icon'>";
       if(helper_text == "graded"){
@@ -308,9 +310,9 @@ define([
           $menu = $("#section-menu");
 
 
-      $menu.find('ul').append($.map(jsonData.context.active_course_sections, function(section, i){
+      $menu.find('ul').append($.raw($.map(jsonData.context.active_course_sections, function(section, i){
         return '<li><a class="section_' + section.id + '" data-section-id="'+ section.id +'" href="#">'+ htmlEscape(section.name) +'</a></li>';
-      }).join(''));
+      }).join('')));
 
       $menu.insertBefore($selectmenu_list).bind('mouseenter mouseleave', function(event){
         $(this)
@@ -472,7 +474,7 @@ define([
           this.spinMute();
           $.ajaxJSON(this.muteUrl(), 'put', { status: true }, $.proxy(function(res){
             this.elements.spinner.stop();
-            this.elements.mute.label.html(label);
+            this.elements.mute.label.text(label);
             this.elements.mute.icon
               .removeClass('ui-icon-volume-off')
               .addClass('ui-icon-volume-on')
@@ -486,7 +488,7 @@ define([
           this.spinMute();
           $.ajaxJSON(this.muteUrl(), 'put', { status: false }, $.proxy(function(res){
             this.elements.spinner.stop();
-            this.elements.mute.label.html(label);
+            this.elements.mute.label.text(label);
             this.elements.mute.icon
               .removeClass('ui-icon-volume-on')
               .addClass('ui-icon-volume-off')
@@ -633,8 +635,9 @@ define([
           $('#record_button').attr("recording", false).attr("aria-label", I18n.t('dialog_button.aria_record_reset', "Click to record"));
         }
 
+        // xsslint safeString.function linebreak
         function linebreak(transcript){
-          return transcript.replace(/\n\n/g, '<p></p>').replace(/\n/g, '<br>');
+          return htmlEscape(transcript).replace(/\n\n/g, '<p></p>').replace(/\n/g, '<br>');
         }
       }
     }
@@ -784,10 +787,13 @@ define([
   $.extend(INST, {
     refreshGrades: function(){
       var url = unescape($assignment_submission_url.attr('href')).replace("{{submission_id}}", EG.currentStudent.submission.user_id) + ".json";
+      var currentStudentIDAsOfAjaxCall = EG.currentStudent.id;
       $.getJSON( url,
         function(data){
-          EG.currentStudent.submission = data.submission;
-          EG.showGrade();
+          if(currentStudentIDAsOfAjaxCall === EG.currentStudent.id) {
+            EG.currentStudent.submission = data.submission;
+            EG.showGrade();
+          }
       });
     },
     refreshQuizSubmissionSnapshot: function(data) {
@@ -1257,13 +1263,16 @@ define([
                                          {user_id: this.currentStudent.id})
         });
       }
-      $multiple_submissions.html(innerHTML);
+      $multiple_submissions.html($.raw(innerHTML));
     },
 
     showSubmissionDetails: function(){
       //if there is a submission
-      if (this.currentStudent.submission && this.currentStudent.submission.submitted_at) {
+      var currentSubmission = this.currentStudent.submission;
+      if (currentSubmission && currentSubmission.submitted_at) {
         this.refreshSubmissionsToView();
+        var lastIndex = currentSubmission.submission_history.length - 1;
+        $("#submission_to_view option:eq(" + lastIndex + ")").attr("selected", "selected");
         $submission_details.show();
       }
       else { //there's no submission
@@ -1273,7 +1282,7 @@ define([
     },
 
     updateStatsInHeader: function(){
-      $x_of_x_students.html(
+      $x_of_x_students.text(
         I18n.t('gradee_index_of_total', '%{gradee} %{x} of %{y}', {
           gradee: gradeeLabel,
           x: EG.currentIndex() + 1,
@@ -1307,13 +1316,13 @@ define([
           return Math.round(number*coefficient)/coefficient;
         }
         var outOf = jsonData.points_possible ? ([" / ", jsonData.points_possible, " (", Math.round( 100 * (avg(scores) / jsonData.points_possible)), "%)"].join("")) : "";
-        $average_score.html( [roundWithPrecision(avg(scores), 2) + outOf].join("") );
+        $average_score.text( [roundWithPrecision(avg(scores), 2) + outOf].join("") );
       }
       else { //there are no submissions that have been graded.
         $average_score_wrapper.hide();
       }
 
-      $grded_so_far.html(
+      $grded_so_far.text(
         I18n.t('portion_graded', '%{x} / %{y} Graded', {
           x: gradedStudents.length,
           y: jsonData.context.students.length
@@ -1399,12 +1408,12 @@ define([
 	        var src = unescape($submission_file_hidden.find('.display_name').attr('href'))
 	                  .replace("{{submissionId}}", this.currentStudent.submission.user_id)
 	                  .replace("{{attachmentId}}", attachment.id);
-	        $iframe_holder.html('<iframe src="'+src+'" frameborder="0" id="speedgrader_iframe"></iframe>').show();
+	        $iframe_holder.html('<iframe src="'+htmlEscape(src)+'" frameborder="0" id="speedgrader_iframe"></iframe>').show();
 	      }
 	      else {
 	        //load in the iframe preview.  if we are viewing a past version of the file pass the version to preview in the url
-	        $iframe_holder.html(
-            '<iframe id="speedgrader_iframe" src="/courses/' + jsonData.context_id  +
+	        $iframe_holder.html($.raw(
+            '<iframe id="speedgrader_iframe" src="' + htmlEscape('/courses/' + jsonData.context_id  +
             '/assignments/' + this.currentStudent.submission.assignment_id +
             '/submissions/' + this.currentStudent.submission.user_id +
             '?preview=true' + (
@@ -1416,7 +1425,7 @@ define([
               ''
             ) + (
               utils.shouldHideStudentNames() ? "&hide_student_name=1" : ""
-            ) + '" frameborder="0"></iframe>')
+            )) + '" frameborder="0"></iframe>'))
             .show();
 	      }
   	  }
@@ -1436,7 +1445,7 @@ define([
 
         $rubric_assessments_select.find("option").remove();
         $.each(this.currentStudent.rubric_assessments, function(){
-          $rubric_assessments_select.append('<option value="' + this.id + '">' + htmlEscape(this.assessor_name) + '</option>');
+          $rubric_assessments_select.append('<option value="' + htmlEscape(this.id) + '">' + htmlEscape(this.assessor_name) + '</option>');
         });
 
         // show a new option if there is not an assessment by me
@@ -1477,7 +1486,7 @@ define([
           var hideStudentName = hideStudentNames && jsonData.studentMap[comment.author_id];
           if (hideStudentName) { comment.author_name = I18n.t('student', "Student"); }
           var $comment = $comment_blank.clone(true).fillTemplateData({ data: comment });
-          $comment.find('span.comment').html(htmlEscape(comment.comment).replace(/\n/g, "<br />"));
+          $comment.find('span.comment').html($.raw(htmlEscape(comment.comment).replace(/\n/g, "<br />")));
           if (comment.avatar_path && !hideStudentName) {
             $comment.find(".avatar").attr('src', comment.avatar_path).show();
           }
@@ -1620,17 +1629,23 @@ define([
     },
 
     showGrade: function(){
-      $grade.val( typeof EG.currentStudent.submission != "undefined" &&
-                  EG.currentStudent.submission.grade !== null ?
-                  EG.currentStudent.submission.grade : "")
-            .attr('disabled', typeof EG.currentStudent.submission != "undefined" &&
-                              EG.currentStudent.submission.submission_type === 'online_quiz');
+      var submission;
+      var grade = "";
+      if ( EG.currentStudent.submission !== undefined ) {
+        submission = EG.currentStudent.submission;
+        if ( submission.grade !== null ) {
+          grade = round(submission.grade, 2);
+        }
+      }
+
+      $grade.val(grade)
+            .attr('disabled', typeof submission != "undefined" &&
+                              submission.submission_type === 'online_quiz');
 
       $('#submit_same_score').hide();
-      if (typeof EG.currentStudent.submission != "undefined" &&
-          EG.currentStudent.submission.score !== null) {
-        $score.text(round(EG.currentStudent.submission.score, round.DEFAULT));
-        if (!EG.currentStudent.submission.grade_matches_current_submission) {
+      if (typeof submission != "undefined" && submission.score !== null) {
+        $score.text(round(submission.score, round.DEFAULT));
+        if (!submission.grade_matches_current_submission) {
           $('#submit_same_score').show();
         }
       } else {

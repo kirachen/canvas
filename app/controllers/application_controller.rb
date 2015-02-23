@@ -32,7 +32,7 @@ class ApplicationController < ActionController::Base
   include LocaleSelection
   include Api::V1::User
   include Api::V1::WikiPage
-  include Lti::MessageHelper
+  include LegalInformationHelper
   around_filter :set_locale
 
   helper :all
@@ -127,14 +127,17 @@ class ApplicationController < ActionController::Base
     @js_env[:TIMEZONE] = Time.zone.tzinfo.identifier if !@js_env[:TIMEZONE]
     @js_env[:CONTEXT_TIMEZONE] = @context.time_zone.tzinfo.identifier if !@js_env[:CONTEXT_TIMEZONE] && @context.respond_to?(:time_zone) && @context.time_zone.present?
     @js_env[:LOCALE] = I18n.qualified_locale if !@js_env[:LOCALE]
+    @js_env[:TOURS] = tours_to_run
     @js_env
   end
   helper_method :js_env
 
   def external_tools_display_hashes(type, context=@context, custom_settings=[])
+    return [] if context.is_a?(Group)
+
     context = context.account if context.is_a?(User)
-    tools = ContextExternalTool.all_tools_for(context, :type => type,
-      :root_account => @domain_root_account, :current_user => @current_user)
+    tools = ContextExternalTool.all_tools_for(context, {:type => type,
+      :root_account => @domain_root_account, :current_user => @current_user})
 
     extension_settings = [:icon_url] + custom_settings
     tools.map do |tool|
@@ -187,6 +190,25 @@ class ApplicationController < ActionController::Base
 
   def rescue_action_dispatch_exception
     rescue_action_in_public(request.env['action_dispatch.exception'])
+  end
+
+  # used to generate context-specific urls without having to
+  # check which type of context it is everywhere
+  def named_context_url(context, name, *opts)
+    if context.is_a?(UserProfile)
+      name = name.to_s.sub(/context/, "profile")
+    else
+      klass = context.class.base_class
+      name = name.to_s.sub(/context/, klass.name.underscore)
+      opts.unshift(context)
+    end
+    opts.push({}) unless opts[-1].is_a?(Hash)
+    include_host = opts[-1].delete(:include_host)
+    if !include_host
+      opts[-1][:host] = context.host_name rescue nil
+      opts[-1][:only_path] = true
+    end
+    self.send name, *opts
   end
 
   protected
@@ -270,25 +292,6 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # used to generate context-specific urls without having to
-  # check which type of context it is everywhere
-  def named_context_url(context, name, *opts)
-    if context.is_a?(UserProfile)
-      name = name.to_s.sub(/context/, "profile")
-    else
-      klass = context.class.base_class
-      name = name.to_s.sub(/context/, klass.name.underscore)
-      opts.unshift(context)
-    end
-    opts.push({}) unless opts[-1].is_a?(Hash)
-    include_host = opts[-1].delete(:include_host)
-    if !include_host
-      opts[-1][:host] = context.host_name rescue nil
-      opts[-1][:only_path] = true
-    end
-    self.send name, *opts
-  end
-
   def user_url(*opts)
     opts[0] == @current_user && !@current_user.grants_right?(@current_user, session, :view_statistics) ?
       user_profile_url(@current_user) :
@@ -341,6 +344,10 @@ class ApplicationController < ActionController::Base
     true
   end
 
+  def run_login_hooks
+    LoginHooks.run_hooks(request)
+  end
+
   # checks the authorization policy for the given object using
   # the vendor/plugins/adheres_to_policy plugin.  If authorized,
   # returns true, otherwise renders unauthorized messages and returns
@@ -374,6 +381,9 @@ class ApplicationController < ActionController::Base
 
   def render_unauthorized_action
     respond_to do |format|
+      @needs_login = (!@current_user && !@files_domain)
+      run_login_hooks if @needs_login
+
       @show_left_side = false
       clear_crumbs
       params = request.path_parameters
@@ -427,6 +437,10 @@ class ApplicationController < ActionController::Base
       end
     end
     return @context != nil
+  end
+
+  def require_context_and_read_access
+    return require_context && authorized_action(@context, @current_user, :read)
   end
 
   helper_method :clean_return_to
@@ -813,10 +827,10 @@ class ApplicationController < ActionController::Base
     AdheresToPolicy::Cache.clear
   end
 
-  def generate_page_view
-    attributes = { :user => @current_user, :developer_key => @developer_key, :real_user => @real_current_user }
+  def generate_page_view(user=@current_user)
+    attributes = { :user => user, :developer_key => @developer_key, :real_user => @real_current_user }
     @page_view = PageView.generate(request, attributes)
-    @page_view.user_request = true if params[:user_request] || (@current_user && !request.xhr? && request.get?)
+    @page_view.user_request = true if params[:user_request] || (user && !request.xhr? && request.get?)
     @page_before_render = Time.now.utc
   end
 
@@ -843,9 +857,12 @@ class ApplicationController < ActionController::Base
   # and reports from these accesses.  This is currently being used
   # to generate access reports per student per course.
   def log_asset_access(asset, asset_category, asset_group=nil, level=nil, membership_type=nil)
-    return unless @current_user && @context && asset
+    user = @current_user
+    user ||= User.where(id: session['file_access_user_id']).first if session['file_access_user_id'].present?
+    return unless user && @context && asset
     return if asset.respond_to?(:new_record?) && asset.new_record?
     @accessed_asset = {
+      :user => user,
       :code => asset.is_a?(String) ? asset : asset.asset_string,
       :group_code => asset_group.is_a?(String) ? asset_group : (asset_group.asset_string rescue 'unknown'),
       :category => asset_category,
@@ -857,7 +874,8 @@ class ApplicationController < ActionController::Base
   def log_page_view
     return true if !page_views_enabled?
 
-    if @current_user && @log_page_views != false
+    user = @current_user || (@accessed_asset && @accessed_asset[:user])
+    if user && @log_page_views != false
       updated_fields = params.slice(:interaction_seconds)
       if request.xhr? && params[:page_view_id] && !updated_fields.empty? && !(@page_view && @page_view.generated_by_hand)
         @page_view = PageView.find_for_update(params[:page_view_id])
@@ -871,14 +889,15 @@ class ApplicationController < ActionController::Base
       # or it's not an update to an already-existing page_view.  We check to make sure
       # it's not an update because if the page_view already existed, we don't want to
       # double-count it as multiple views when it's really just a single view.
-      if @current_user && @accessed_asset && (@accessed_asset[:level] == 'participate' || !@page_view_update)
-        @access = AssetUserAccess.where(user_id: @current_user.id, asset_code: @accessed_asset[:code]).first_or_initialize
+
+      if @accessed_asset && (@accessed_asset[:level] == 'participate' || !@page_view_update)
+        @access = AssetUserAccess.where(user_id: user.id, asset_code: @accessed_asset[:code]).first_or_initialize
         @accessed_asset[:level] ||= 'view'
         access_context = @context.is_a?(UserProfile) ? @context.user : @context
         @access.log access_context, @accessed_asset
 
         if @page_view.nil? && page_views_enabled? && %w{participate submit}.include?(@accessed_asset[:level])
-          generate_page_view
+          generate_page_view(user)
         end
 
         if @page_view
@@ -947,6 +966,7 @@ class ApplicationController < ActionController::Base
   # Custom error catching and message rendering.
   def rescue_action_in_public(exception)
     response_code = exception.response_status if exception.respond_to?(:response_status)
+    @show_left_side = exception.show_left_side if exception.respond_to?(:show_left_side)
     response_code ||= response_code_for_rescue(exception) || 500
     begin
       status_code = interpret_status(response_code)
@@ -1003,15 +1023,21 @@ class ApplicationController < ActionController::Base
     load_account unless @domain_root_account
     session[:last_error_id] = error.id rescue nil
     if request.xhr? || request.format == :text
-      render_xhr_exception(error, nil, status, status_code)
+      message = exception.xhr_message if exception.respond_to?(:xhr_message)
+      render_xhr_exception(error, message, status, status_code)
     else
       request.format = :html
-      erbfile = "#{status.to_s[0,3]}_message.html.erb"
-      erbpath = File.join('app', 'views', 'shared', 'errors', erbfile)
-      erbfile = "500_message.html.erb" unless File.exists?(erbpath)
+      template = exception.error_template if exception.respond_to?(:error_template)
+      unless template
+        erbfile = "#{status.to_s[0,3]}_message.html.erb"
+        erbpath = File.join('app', 'views', 'shared', 'errors', erbfile)
+        erbfile = "500_message.html.erb" unless File.exists?(erbpath)
+        template = "shared/errors/#{erbfile}"
+      end
+
       @status_code = status_code
       message = exception.is_a?(RequestError) ? exception.message : nil
-      render :template => "shared/errors/#{erbfile}",
+      render :template => template,
         :layout => 'application',
         :status => status,
         :locals => {
@@ -1222,23 +1248,18 @@ class ApplicationController < ActionController::Base
                  :redirect_return_cancel_url => success_url)
         end
 
-        substitutions = common_variable_substitutions
-        if tag.tag_type == 'context_module'
-          substitutions.merge!(
-              {
-                  '$Canvas.module.id' => tag.context_module_id,
-                  '$Canvas.moduleItem.id' => tag.id,
-              }
-          )
-        end
-
         opts = {
             launch_url: @resource_url,
             link_code: @opaque_id,
             overrides: {'resource_link_title' => @resource_title},
-            custom_substitutions: substitutions
         }
-        adapter = Lti::LtiOutboundAdapter.new(@tool, @current_user, @context).prepare_tool_launch(@return_url, opts)
+        variable_expander = Lti::VariableExpander.new(@domain_root_account, @context, self,{
+                                                        current_user: @current_user,
+                                                        current_pseudonym: @current_pseudonym,
+                                                        content_tag: tag,
+                                                        assignment: @assignment,
+                                                        tool: @tool})
+        adapter = Lti::LtiOutboundAdapter.new(@tool, @current_user, @context).prepare_tool_launch(@return_url, variable_expander, opts)
 
         if tag.try(:context_module)
           add_crumb tag.context_module.name, context_url(@context, :context_context_modules_url)
