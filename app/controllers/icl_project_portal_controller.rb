@@ -10,7 +10,9 @@ class IclProjectPortalController < ApplicationController
   end
 
   def create
-
+    p "Here baby!"
+    p params
+    @icl_project = IclProject.create(title:params[:title], description:params[:description])
     if @icl_project.save()
         redirect_to action: "show"
     end
