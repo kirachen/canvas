@@ -74,7 +74,7 @@ class Icl_cover_sheet
   def print_declaration
     text "Student Declaration", :align => :center, :size => 20
     move_down(15)
-    text "I declare that this final submitted version is my unpaid work.", :align => :center, :size => 15
+    text "I declare that this final submitted version is my unaided work.", :align => :center, :size => 15
     move_down(30)
     bounding_box([20, 410], :width => 270, :height => 50) do
       move_down(20)
