@@ -21,7 +21,8 @@
   <div id="projects">
   <% @projects.each do |project| %>
   
-    <h4> <%= project.title %> </h4>
+    <h4>  <%= project.title %> </h4>
+    <h5>  <i><%= "Created by " + project.user.name if project.user %></i></h5>
     <div>
     <p>
     <%= project.description %>
