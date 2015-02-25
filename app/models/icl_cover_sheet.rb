@@ -5,7 +5,7 @@ require 'barby/outputter/prawn_outputter'
 require "date"
 require "time"
 
-class Icl_cover_sheet
+class IclCoverSheet
 
   include Prawn::View
 

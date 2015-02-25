@@ -516,7 +516,7 @@ class AssignmentsController < ApplicationController
     enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first
     teacher = User.find(enrollment.user_id)
     
-    cover_sheet = Icl_cover_sheet.new(
+    cover_sheet = IclCoverSheet.new(
         params[:student_name], 
         params[:student_id], 
         "c4", # This grouping will happen after feature Student Grouping
