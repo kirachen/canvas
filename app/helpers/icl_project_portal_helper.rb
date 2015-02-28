@@ -1,2 +1,59 @@
 module IclProjectPortalHelper
+
+    def get_thought_courses(user)
+        enrollments = Enrollment.where(:user_id => user, :type=>"TeacherEnrollment")
+
+        if enrollments.empty?
+            return nil
+        end
+        course_ids_for_user = enrollments.map(&:course_id)
+        courses_for_user = Course.find(course_ids_for_user)
+    end
+
+    def get_project_choice(user, project)
+        choice = IclProjectChoice.where(:user_id => user, :icl_project_id => project).first()
+        if choice == nil then
+            return nil
+        end
+        choice.preference
+
+    end
+
+    def make_project_choice(user, project, preference)
+
+        IclProjectChoice.where(:user_id => user, :preference => preference).destroy_all()
+        if preference != nil then
+            IclProjectChoice.create(:user_id => user, :icl_project_id  => project, :preference => preference)
+        end
+
+    end
+
+    def course_has_projects(course)
+        IclProject.where(:course_id => course).any?
+    end
+
+    def get_course_projects(course)
+        IclProject.where(:course_id => course)
+    end
+
+    def get_possible_choices(user, project_id)
+        project = IclProject.where(:id => project_id).first()
+        preferenes_chosen = IclProjectChoice.where(:user_id => user, :icl_project_id => IclProject.where(:course_id=>project.course)).map(&:preference)
+        #Group project - 6 choices
+        if project.category == 1 then
+            return (1..6).step(1) - preferenes_chosen
+        end
+
+        #Individual Project - 3 choices
+        if project.category == 2 then
+            return (1..3).step(1) - preferenes_chosen
+        end
+    end
+
+    def get_preference_for_project(user, project)
+        IclProjectChoice.where(:user_id => user, :icl_project_id => project).first()
+
+    end
+
+
 end

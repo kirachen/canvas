@@ -8,7 +8,8 @@ Dir["{gems,vendor}/plugins/*/config/pre_routes.rb"].each { |pre_routes|
 CanvasRails::Application.routes.draw do
   post "icl_project_portal/create"
   get "icl_project_portal/show"
-
+  post "icl_project_portal/choose_individual_project_course"
+  post "icl_project_portal/choose"
   resources :submission_comments, only: :destroy
 
   get 'inbox' => 'context#inbox'
