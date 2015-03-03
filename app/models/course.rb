@@ -73,14 +73,16 @@ class Course < ActiveRecord::Base
                   :lock_all_announcements,
                   :public_syllabus,
                   :course_format,
-                  :time_zone
+                  :time_zone,
+                  :ppt_included, # Imperial College London: PPT/PMT
+                  :pmt_included # Imperial College London: PPT/PMT
 
   EXPORTABLE_ATTRIBUTES = [
     :id, :name, :account_id, :group_weighting_scheme, :workflow_state, :uuid, :start_at, :conclude_at, :grading_standard_id, :is_public, :allow_student_wiki_edits,
     :created_at, :updated_at, :show_public_context_messages, :syllabus_body, :allow_student_forum_attachments, :default_wiki_editing_roles, :wiki_id, :allow_student_organized_groups,
     :course_code, :default_view, :root_account_id, :enrollment_term_id, :sis_source_id, :sis_batch_id, :show_all_discussion_entries, :open_enrollment, :storage_quota,
     :tab_configuration, :allow_wiki_comments, :turnitin_comments, :self_enrollment, :license, :indexed, :restrict_enrollments_to_course_dates, :template_course_id,
-    :locale, :settings, :replacement_course_id,  :public_description, :self_enrollment_code, :self_enrollment_limit, :abstract_course_id, :course_account_associations, :lti_context_id
+    :locale, :settings, :replacement_course_id,  :public_description, :self_enrollment_code, :self_enrollment_limit, :abstract_course_id, :course_account_associations, :lti_context_id, :ppt_included, :pmt_included # Imperial College London: PPT/PMT
   ]
 
   EXPORTABLE_ASSOCIATIONS = [
@@ -217,6 +219,7 @@ class Course < ActiveRecord::Base
   has_many :usage_rights, as: :context, class_name: 'UsageRights', dependent: :destroy
 
   has_many :sis_post_grades_statuses
+  has_one :icl_pptpmt_courses #Imperial College London: PPT/PMT
 
   include Profile::Association
 
@@ -2041,7 +2044,9 @@ class Course < ActiveRecord::Base
       :storage_quota, :tab_configuration, :allow_wiki_comments,
       :turnitin_comments, :self_enrollment, :license, :indexed, :locale,
       :hide_final_grade, :hide_distribution_graphs,
-      :allow_student_discussion_topics, :lock_all_announcements ]
+      :allow_student_discussion_topics, :lock_all_announcements,
+      :ppt_included, :pmt_included # Imperial College London: PPT/PMT
+    ]
   end
 
   def set_course_dates_if_blank(shift_options)
@@ -2486,6 +2491,8 @@ class Course < ActiveRecord::Base
   add_setting :public_syllabus, :boolean => true, :default => false
   add_setting :course_format
   add_setting :is_public_to_auth_users, :boolean => true, :default => false
+  add_setting :ppt_included, :boolean => true, :default => false
+  add_setting :pmt_included, :boolean => true, :default => false
 
   def user_can_manage_own_discussion_posts?(user)
     return true if allow_student_discussion_editing?

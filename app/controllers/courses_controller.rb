@@ -1057,6 +1057,7 @@ class CoursesController < ApplicationController
       :hide_distribution_graphs,
       :lock_all_announcements
     )
+
     changes = changed_settings(@course.changes, @course.settings, old_settings)
 
     if @course.save
@@ -1975,6 +1976,22 @@ class CoursesController < ApplicationController
       end
 
       params[:course][:conclude_at] = params[:course].delete(:end_at) if api_request? && params[:course].has_key?(:end_at)
+
+      #Imperial College London: PPT/PMT
+      is_pmt_included = params[:course][:pmt_included]
+      is_ppt_included = params[:course][:ppt_included]
+      if is_pmt_included != nil and is_ppt_included != nil
+        icl = Course.find(@course.id).icl_pptpmt_courses
+        if icl == nil
+          icl = IclPptpmtCourses.new
+          icl.course_id = @course.id
+        end
+        icl.pmt_included = is_pmt_included == "1"
+        icl.ppt_included = is_ppt_included == "1"
+        icl.save
+      end
+      # end
+
       respond_to do |format|
         @default_wiki_editing_roles_was = @course.default_wiki_editing_roles
 
