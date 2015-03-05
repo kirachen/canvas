@@ -321,10 +321,12 @@ TEXT
             <%= f.check_box :lock_all_announcements %>
             <%= label_tag :course_lock_all_announcements, :en => 'Disable comments on announcements' %><br />
 	    <!-- Imperial College London: PPT/PMT -->
+	    <% if !@context.is_ppt_course? and !@context.is_pmt_course? %>
 	    <%= f.check_box :ppt_included %>
             <%= f.label :ppt_included, :en => "Include PPT as part of this course" %><br/>
 	    <%= f.check_box :pmt_included %>
             <%= f.label :pmt_included, :en => "Include PMT as part of this course" %><br/>
+	    <% end %>
 	    <!-- End -->
             <%= f.select :default_wiki_editing_roles, [
               [t('#course.wiki_permissions.only_teachers', "Only Teachers"), "teachers"],

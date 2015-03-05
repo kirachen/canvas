@@ -1057,7 +1057,6 @@ class CoursesController < ApplicationController
       :hide_distribution_graphs,
       :lock_all_announcements
     )
-
     changes = changed_settings(@course.changes, @course.settings, old_settings)
 
     if @course.save

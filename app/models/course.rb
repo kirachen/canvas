@@ -257,6 +257,16 @@ class Course < ActiveRecord::Base
 
   has_a_broadcast_policy
 
+  # Imperial College London: PPT/PMT
+  def is_ppt_course?
+    self.name == "PPT"
+  end
+
+  def is_pmt_course?
+    self.name == "PMT"
+  end
+  # End
+
   def [](attr)
     attr.to_s == 'asset_string' ? self.asset_string : super
   end
@@ -2491,9 +2501,10 @@ class Course < ActiveRecord::Base
   add_setting :public_syllabus, :boolean => true, :default => false
   add_setting :course_format
   add_setting :is_public_to_auth_users, :boolean => true, :default => false
+  # Imperial College London: PPT/PMT
   add_setting :ppt_included, :boolean => true, :default => false
   add_setting :pmt_included, :boolean => true, :default => false
-
+  # End
   def user_can_manage_own_discussion_posts?(user)
     return true if allow_student_discussion_editing?
     return true if user_is_instructor?(user)
