@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 # Copyright (C) 2011 - 2014 Instructure, Inc.
 #
@@ -940,6 +941,10 @@ class AssignmentsApiController < ApplicationController
   def save_and_render_response
     @assignment.content_being_saved_by(@current_user)
     if update_api_assignment(@assignment, params[:assignment], @current_user)
+      # Imperial College London: PPT/PMT
+      sync_ppt_assignments
+      sync_pmt_assignments
+      # End
       render :json => assignment_json(@assignment, @current_user, session), :status => 201
     else
       errors = @assignment.errors.as_json[:errors]
@@ -947,4 +952,59 @@ class AssignmentsApiController < ApplicationController
       render :json => {errors: errors}, status: :bad_request
     end
   end
+
+  # Imperial College London: PPT/PMT
+  def sync_ppt_assignments
+    if current_course_contains_ppt?
+      p = params[:assignment]
+      get_ppt_courses.each do |ppt_course|
+        p[:course_id] = ppt_course.id
+        assignment = ppt_course.assignments.build
+        update_api_assignment(assignment, p, @current_user)
+      end
+    end
+  end
+
+  def sync_pmt_assignments
+    if current_course_contains_pmt?
+      p = params[:assignment]
+      get_pmt_courses.each do |pmt_course|
+        p[:course_id] = pmt_course.id
+        assignment = pmt_course.assignments.build
+        assignment.workflow_state = 'unpublished'
+        update_api_assignment(assignment, p, @current_user)
+      end
+    end
+  end
+
+  def current_course_contains_ppt?
+    ppt_included_courses = IclPptpmtCourses.where("ppt_included = ?", true)
+    contains_ppt_course = false
+    ppt_included_courses.each do |c|
+      if c.course_id == @context.id
+        contains_ppt_course = true
+      end
+    end
+    return contains_ppt_course
+  end
+
+  def current_course_contains_pmt?
+    pmt_included_courses = IclPptpmtCourses.where("pmt_included = ?", true)
+    contains_pmt_course = false
+    pmt_included_courses.each do |c|
+      if c.course_id == @context.id
+        contains_pmt_course = true
+      end
+    end
+    return contains_pmt_course
+  end
+
+  def get_ppt_courses
+    return Course.where("name = ? AND NOT workflow_state = ?", "PPT", "deleted")
+  end
+
+  def get_pmt_courses
+    return Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
+  end
+  # End
 end
