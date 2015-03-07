@@ -477,12 +477,40 @@ class AssignmentsController < ApplicationController
   # @returns Assignment
   def destroy
     @assignment = @context.assignments.active.find(params[:id])
+    # Imperial College London: PPT/PMT
+    sync_on_destroy
+    # End
     if authorized_action(@assignment, @current_user, :delete)
       @assignment.destroy
 
       respond_to do |format|
         format.html { redirect_to(named_context_url(@context, :context_assignments_url)) }
         format.json { render :json => assignment_json(@assignment, @current_user, session) }
+      end
+    end
+  end
+
+  # Imperial College London: PPT/PMT
+  # If the assignment to be destroyed is contained
+  # in a course that contains PPT or PMT courses,
+  # then it looks up all matching assignments(name and description
+  # since id is unique) and destroy them
+  def sync_on_destroy
+    if @context.contains_ppt?
+      ppt_courses = Course.where("name = ? AND NOT workflow_state = ?", "PPT", "deleted")
+      ppt_courses.each do |ppt_course|
+        assignment = ppt_course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
+        if !assignment.empty?
+          assignment.destroy_all
+        end
+      end
+    elsif @context.contains_pmt?
+      pmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
+      pmt_courses.each do |pmt_course|
+        assignment = pmt_course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
+        if !assignment.empty?
+          assignment.destroy_all
+        end
       end
     end
   end
