@@ -781,6 +781,10 @@ class AssignmentsApiController < ApplicationController
   #
   # @returns Assignment
   def create
+    # Imperial College London: PPT/PMT
+    @create = true
+    @update = false
+    # End
     @assignment = @context.assignments.build
     @assignment.workflow_state = 'unpublished'
     if authorized_action(@assignment, @current_user, :create)
@@ -932,6 +936,10 @@ class AssignmentsApiController < ApplicationController
   #
   # @returns Assignment
   def update
+    # Imperial College London: PPT/PMT
+    @create = false
+    @update = true
+    # End
     @assignment = @context.active_assignments.find(params[:id])
     if authorized_action(@assignment, @current_user, :update)
       save_and_render_response
@@ -940,10 +948,17 @@ class AssignmentsApiController < ApplicationController
 
   def save_and_render_response
     @assignment.content_being_saved_by(@current_user)
+    # Imperial College London: PPT/PMT
+    old_title = @assignment.name
+    old_description = @assignment.description
+    # End
     if update_api_assignment(@assignment, params[:assignment], @current_user)
       # Imperial College London: PPT/PMT
-      sync_ppt_assignments
-      sync_pmt_assignments
+      if @create
+        sync_on_create
+      elsif @update
+        sync_on_update(old_title, old_description)
+      end
       # End
       render :json => assignment_json(@assignment, @current_user, session), :status => 201
     else
@@ -954,25 +969,41 @@ class AssignmentsApiController < ApplicationController
   end
 
   # Imperial College London: PPT/PMT
-  def sync_ppt_assignments
+  def sync_on_create
     if @context.contains_ppt?
-      p = params[:assignment]
-      get_ppt_courses.each do |ppt_course|
-        p[:course_id] = ppt_course.id
-        assignment = ppt_course.assignments.build
-        update_api_assignment(assignment, p, @current_user)
-      end
+      sync_create_assignment get_ppt_courses
+    elsif @context.contains_pmt?
+      sync_create_assignment get_pmt_courses
     end
   end
 
-  def sync_pmt_assignments
-    if @context.contains_pmt?
-      p = params[:assignment]
-      get_pmt_courses.each do |pmt_course|
-        p[:course_id] = pmt_course.id
-        assignment = pmt_course.assignments.build
-        assignment.workflow_state = 'unpublished'
-        update_api_assignment(assignment, p, @current_user)
+  def sync_on_update(old_title, old_description)
+    if @context.contains_ppt?
+      sync_update_assignment(get_ppt_courses, old_title, old_description)
+    elsif @context.contains_pmt?
+      sync_update_assignment(get_pmt_courses, old_title, old_description)
+    end
+  end
+
+  def sync_create_assignment(courses)
+    p = params[:assignment]
+    courses.each do |course|
+      p[:course_id] = course.id
+      assignment = course.assignments.build
+      assignment.workflow_state = 'unpublished'
+      update_api_assignment(assignment, p, @current_user)
+    end
+  end
+  
+  def sync_update_assignment(courses, old_title, old_description)
+    p = params[:assignment]
+    courses.each do |course|
+      assignment = course.assignments.active.where("title = ? AND description = ?", old_title, old_description)
+      if !assignment.empty?
+        p[:course_id] = course.id
+        p[:id] = assignment.first.id
+        p[:html_url] = replace_course_assignment_id_in_url(p[:html_url], course.id, assignment.first.id)
+        update_api_assignment(assignment.first, p, @current_user)
       end
     end
   end
@@ -983,6 +1014,26 @@ class AssignmentsApiController < ApplicationController
 
   def get_pmt_courses
     return Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
+  end
+
+  def replace_course_assignment_id_in_url(url, course_id, assignment_id)
+    if url != nil
+      url_arr = url.split("/")
+      new_url = ""
+      course = false
+      assignment = false
+      url_arr.each do |u|
+        if course
+          u = course_id.to_s
+        elsif assignment
+          u = assignment_id.to_s
+        end
+        new_url = new_url + u + "/"
+        course = u == "courses"
+        assignment = u == "assignments"
+      end
+      return new_url
+    end
   end
   # End
 end
