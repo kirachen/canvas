@@ -265,6 +265,28 @@ class Course < ActiveRecord::Base
   def is_pmt_course?
     self.name == "PMT"
   end
+
+  def contains_ppt?
+    ppt_included_courses = IclPptpmtCourses.where("ppt_included = ?", true)
+    contains_ppt_course = false
+    ppt_included_courses.each do |c|
+      if c.course_id == self.id
+        contains_ppt_course = true
+      end
+    end
+    return contains_ppt_course
+  end
+
+  def contains_pmt?
+    pmt_included_courses = IclPptpmtCourses.where("pmt_included = ?", true)
+    contains_pmt_course = false
+    pmt_included_courses.each do |c|
+      if c.course_id == self.id
+        contains_pmt_course = true
+      end
+    end
+    return contains_pmt_course
+  end
   # End
 
   def [](attr)

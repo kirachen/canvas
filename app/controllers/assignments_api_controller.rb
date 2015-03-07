@@ -955,7 +955,7 @@ class AssignmentsApiController < ApplicationController
 
   # Imperial College London: PPT/PMT
   def sync_ppt_assignments
-    if current_course_contains_ppt?
+    if @context.contains_ppt?
       p = params[:assignment]
       get_ppt_courses.each do |ppt_course|
         p[:course_id] = ppt_course.id
@@ -966,7 +966,7 @@ class AssignmentsApiController < ApplicationController
   end
 
   def sync_pmt_assignments
-    if current_course_contains_pmt?
+    if @context.contains_pmt?
       p = params[:assignment]
       get_pmt_courses.each do |pmt_course|
         p[:course_id] = pmt_course.id
@@ -975,28 +975,6 @@ class AssignmentsApiController < ApplicationController
         update_api_assignment(assignment, p, @current_user)
       end
     end
-  end
-
-  def current_course_contains_ppt?
-    ppt_included_courses = IclPptpmtCourses.where("ppt_included = ?", true)
-    contains_ppt_course = false
-    ppt_included_courses.each do |c|
-      if c.course_id == @context.id
-        contains_ppt_course = true
-      end
-    end
-    return contains_ppt_course
-  end
-
-  def current_course_contains_pmt?
-    pmt_included_courses = IclPptpmtCourses.where("pmt_included = ?", true)
-    contains_pmt_course = false
-    pmt_included_courses.each do |c|
-      if c.course_id == @context.id
-        contains_pmt_course = true
-      end
-    end
-    return contains_pmt_course
   end
 
   def get_ppt_courses
