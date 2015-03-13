@@ -1,1 +1,30 @@
-I am creating!
+<%= render "shared/icl_pp_sidebar" %>
+<h1>Add New Project</h1>
+
+<%= form_tag(controller: "icl_project_portal", action: "create_project", method: "post") do %>
+  <%= label_tag(:title, "Project Title:") %>
+  <br />
+  <%= text_field_tag(:title, nil, :class => 'course_form') %>
+  <br />
+  <%= label_tag(:category, "Project Type:") %>
+  <br />
+  <% @s = [['Individual Project', 2]] %>
+  <% if @is_teacher %>
+  <%= select_tag(:category, options_for_select([['Group Project', 1], ['Individual Project', 2]], selected: :category )) %>
+  <br />
+  <%= label_tag(:course, "Course:") %>
+  <br />
+  
+  <%= select_tag(:course, options_for_select(@thought_courses.map{|course| [course.name, course.id]}, selected: :course )) %>
+  <% else %>
+  <%= select_tag(:category, options_for_select([['Individual Project', 2]], selected: :category )) %>
+
+  <% end %>
+  <br />
+  <%= label_tag(:description, "Project Description:") %>
+  <br />
+  <%= text_area_tag(:description, nil, :cols => 5, :rows => 10, :class => "span4") %>
+  <br />
+  <%= submit_tag("Create Project", :class => 'btn btn-primary') %>
+<% end %>
+<%= render "shared/icl_pp_footer" %>

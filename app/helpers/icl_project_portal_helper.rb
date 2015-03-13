@@ -18,6 +18,22 @@ module IclProjectPortalHelper
         choice.preference
 
     end
+    
+    def choose_project(params)
+        
+        preference = params[:preference]
+
+        IclProjectChoice.where(:icl_project_id => params[:project_id], :user_id => @current_user).destroy_all()
+
+        if preference != nil
+    
+            @choice = IclProjectChoice.new(preference:params[:preference])
+            @choice.user = @current_user
+            @choice.icl_project = IclProject.where(:id => params[:project_id]).first()
+            @choice.save()
+
+        end
+    end
 
     def make_project_choice(user, project, preference)
 
@@ -26,6 +42,11 @@ module IclProjectPortalHelper
             IclProjectChoice.create(:user_id => user, :icl_project_id  => project, :preference => preference)
         end
 
+    end
+
+    def is_main_admin(user)
+        #Kind of a hack, gotta find a better way around it
+        return (user.id==1)
     end
 
     def course_has_projects(course)

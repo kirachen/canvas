@@ -1,6 +1,9 @@
+<%= render "shared/icl_pp_sidebar", is_admin: @is_admin %>
+
 <h1>Project Portal</h1>
 <% #Not so happy with this. Gotta find a smoother way of defining the main admin %>
-<% if @current_user.id==1 then %>
+<% if @is_admin then %>
+
 <h3>Choose individual project course</h3>
 <%= form_tag(controller: "icl_project_portal", action: "choose_individual_project_course", method: "get") do %>
 
@@ -11,73 +14,11 @@
 
 <% end %>
 <% #if can_do @current_user, @current_user, :manage_project_portal %>
-<h3>Add New Project</h3>
-<table>
-<%= form_tag(controller: "icl_project_portal", action: "create", method: "get") do %>
-  <%= label_tag(:title, "Project Title:") %>
-  <br />
-  <%= text_field_tag(:title, nil, :class => 'course_form') %>
-  <br />
-  <%= label_tag(:category, "Project Type:") %>
-  <br />
-  <% @s = [['Individual Project', 2]] %>
-  <% if @is_teacher %>
-  <%= select_tag(:category, options_for_select([['Group Project', 1], ['Individual Project', 2]], selected: :category )) %>
-  <br />
-  <%= label_tag(:course, "Course:") %>
-  <br />
-  
-  <%= select_tag(:course, options_for_select(@thought_courses.map{|course| [course.name, course.id]}, selected: :course )) %>
-  <% else %>
-  <%= select_tag(:category, options_for_select([['Individual Project', 2]], selected: :category )) %>
 
-  <% end %>
-  <br />
-  <%= label_tag(:description, "Project Description:") %>
-  <br />
-  <%= text_area_tag(:description, nil, :cols => 5, :rows => 10, :class => "span4") %>
-  <br />
-  <%= submit_tag("Create Project", :class => 'btn btn-primary') %>
-<% end %>
-</table>
 <% #end %>
 
-<h3>Current Projects</h3>
-  <div id="projects">
 
-  <% @courses.each do |course| %>
 
-  <% if course_has_projects(course) %>
-    <h3> <%= course.name %> </h3>
-    <hr />
 
-      <% get_course_projects(course).each do |project| %>
-        
-        <h4>  <%= project.title %> </h4>
-        <h5>  <i><%= "Created by " + project.user.name if project.user %></i></h5>
-        <div>
-          <p>
-            <%= project.description %>
-            <% preference = get_preference_for_project(@current_user, project) %>
-            <p>Choice Made: <%=  if preference then "Preference #" + preference.preference.to_s else "No choice" end %> </p>
+<%= render "shared/icl_pp_footer" %>
 
-            <p><b>Select Preference:</b></p>
-            <br />
-
-            <%= form_tag(controller: "icl_project_portal", action: "choose", method: "get") do %>
-              <%= select_tag(:preference, options_for_select([[nil, nil]] + get_possible_choices(@current_user, project.id).map{|option| [option, option]}, selected: :preference )) %>
-            <%= hidden_field_tag 'project_id', project.id %>
-              <%= submit_tag("Choose", :class => 'btn btn-primary') %>
-              
-
-            <% end %>
-            
-          </p>
-      <% end %>
-  <% end %>
-        </div>
-
-      
-  <% end %>
-
-</div>

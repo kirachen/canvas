@@ -4,14 +4,14 @@ RSpec.describe IclProjectPortalController, :type => :controller do
 
   describe "GET show" do
     it "should display the page succesfully" do
-      get :show
-      expect(response).to have_http_status(:success)
+      get :sho
+w      expect(response).to have_http_status(:success)
     end
   end
 
   describe "CREATE create" do
 
-    it "should create a new project when the inputs are valid" #do
+    it "should create a new project in the database" #do
         #TODO isolate this behaviour
         
         #count_before = IclProject.count
@@ -24,7 +24,11 @@ RSpec.describe IclProjectPortalController, :type => :controller do
         #expect(response).to redirect_to(:show)
 
     #end
-    it "should not create a new project when the inputs are invalid"
+    it "should redirect to the projects page"
+
+  end
+
+  describe "" do
 
   end
 

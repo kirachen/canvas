@@ -1,0 +1,14 @@
+<div class='span2 sidebar'>
+        <h3>Portal Navigation</h3>
+        <ul class="nav nav-tabs nav-stacked">
+        <li><%=link_to "Project Portal Index", controller: "icl_project_portal", action: "show" %></li>
+            <li><%=link_to "Create Project", controller: "icl_project_portal", action: "create" %></li>
+            <li><%=link_to "Course Projects", controller: "icl_project_portal", action: "course_projects" %></li>
+            <li><%=link_to "Individual Projects", controller: "icl_project_portal", action: "individual_projects" %></li>
+            <!-- if you are the main admin (e.g. Anandha) -->
+            <% if is_admin then %>
+            <li><%=link_to "Assign Projects", controller: "icl_project_portal", action: "assign_projects" %></li>
+            <% end %>
+    </ul>
+</div>
+<div class='span8 main'>

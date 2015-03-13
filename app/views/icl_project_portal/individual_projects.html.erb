@@ -1,0 +1,39 @@
+<%= render "shared/icl_pp_sidebar" %>
+<h3>Current Projects</h3>
+  <div id="projects">
+
+  <% @individual_projects.each do |course| %>
+
+  <% if course_has_projects(course) %>
+    <h3> <%= course.name %> </h3>
+    <hr />
+
+      <% get_course_projects(course).each do |project| %>
+        
+        <h4>  <%= project.title %> </h4>
+        <h5>  <i><%= "Created by " + project.user.name if project.user %></i></h5>
+        <div>
+          <p>
+            <%= project.description %>
+            <% preference = get_preference_for_project(@current_user, project) %>
+            <p>Choice Made: <%=  if preference then "Preference #" + preference.preference.to_s else "No choice" end %> </p>
+
+            <p><b>Select Preference:</b></p>
+            <br />
+
+            <%= form_tag(controller: "icl_project_portal", action: "choose_indiv", method: "get") do %>
+              <%= select_tag(:preference, options_for_select([[nil, nil]] + get_possible_choices(@current_user, project.id).map{|option| [option, option]}, selected: :preference )) %>
+            <%= hidden_field_tag 'project_id', project.id %>
+              <%= submit_tag("Choose", :class => 'btn btn-primary') %>
+              
+
+            <% end %>
+            
+          </p>
+      <% end %>
+  <% end %>
+        </div>
+
+      
+  <% end %>
+<%= render "shared/icl_pp_footer" %>
