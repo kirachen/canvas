@@ -1,0 +1,23 @@
+<%= render "shared/icl_pp_sidebar" %>
+
+  <% @courses_with_projects.each do |course| %>
+    <h4><%= course.name %></h4>
+    <hr />
+     <% course.students.each do |student| %>
+
+     	<p><b><%= student.name %></b></p>
+     	<% get_choices_for_user(student, course).each do |choice| %>
+     		<p>Preference #<%= choice.preference%> : <%= choice.icl_project.title%> </p>
+     	<% end %>
+     	<% assigned = get_assigned_project(student, course) %>
+     	<p>Assigned project: <%= if assigned then assigned.icl_project.title else "None" end %></p>
+     	<p>Assign a project:</p>
+     	<%= form_tag(controller: "icl_project_portal", action: "assign_projects", method: "post") do %>
+     		<%= select_tag(:icl_project_id, options_for_select([[nil, nil]] + get_course_projects(course).map{|project| [project.title, project.id]} )) %>
+     		<%= hidden_field_tag 'user_id', student.id %>
+     		<%= submit_tag("Assign", :class => 'btn btn-primary') %>
+     	<% end %>
+     <% end %>
+  <% end %>
+
+<%= render "shared/icl_pp_footer" %>

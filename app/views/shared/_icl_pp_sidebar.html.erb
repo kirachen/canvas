@@ -6,8 +6,8 @@
             <li><%=link_to "Course Projects", controller: "icl_project_portal", action: "course_projects" %></li>
             <li><%=link_to "Individual Projects", controller: "icl_project_portal", action: "individual_projects" %></li>
             <!-- if you are the main admin (e.g. Anandha) -->
-            <% if is_admin then %>
-            <li><%=link_to "Assign Projects", controller: "icl_project_portal", action: "assign_projects" %></li>
+            <% if @is_admin then %>
+            <li><%=link_to "Assign Projects", controller: "icl_project_portal", action: "project_assignments" %></li>
             <% end %>
     </ul>
 </div>

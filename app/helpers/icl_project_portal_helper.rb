@@ -76,5 +76,12 @@ module IclProjectPortalHelper
 
     end
 
+    def get_choices_for_user(user, course)
+        IclProjectChoice.where(:user_id => user, :icl_project_id => IclProject.where(:course_id=>course)).order(:preference)
+    end
+
+    def get_assigned_project(user, course)
+        IclProjectAssignment.where(:user_id => user, :icl_project_id => IclProject.where(:course_id=>course)).first()
+    end
 
 end

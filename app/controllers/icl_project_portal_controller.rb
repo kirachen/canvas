@@ -11,16 +11,18 @@ class IclProjectPortalController < ApplicationController
   
   def course_projects
     @courses = Course.all - IclIndividualProject.all.collect{|e| e.course}
-
+    @is_admin = is_main_admin(@current_user)
   end
 
   def individual_projects
     @individual_projects = IclIndividualProject.all.collect{|e| e.course}
+    @is_admin = is_main_admin(@current_user)
   end
 
   def create
     @thought_courses = get_thought_courses(@current_user)
     @is_teacher = @thought_courses != nil
+    @is_admin = is_main_admin(@current_user)
     #Create a new project when we get a 'CREATE' request
     #@icl_project = IclProject.new(title:params[:title], description:params[:description], category:params[:category])
     #Current user is owner of the project
@@ -87,6 +89,29 @@ class IclProjectPortalController < ApplicationController
   end
 
   def assign_projects
-    
+
+    IclProjectAssignment.where(:user_id => params[:user_id]).destroy_all()
+    project = IclProject.where(:id => params[:icl_project_id]).first()
+    p "PARAMETERS"
+    p params
+    if project != nil
+      p "PARAMETERS"
+      p params
+      project_assignement = IclProjectAssignment.new()
+      project_assignement.user = User.where(:id => params[:user_id]).first()
+      project_assignement.icl_project = project
+      project_assignement.save()
+    end
+    redirect_to action: "project_assignments"
+  end
+
+  def delete_project_assignment
+    IclProjectAssignment.where(:icl_project_id => params[:project_id], :user_id => params[:user_id]).destroy_all()
+    redirect_to action: "project_assignments"
+  end
+
+  def project_assignments
+    @courses_with_projects = Course.where(:id => IclProject.all().map(&:course_id))
+    @is_admin = is_main_admin(@current_user)
   end
 end
