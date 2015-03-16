@@ -84,4 +84,18 @@ module IclProjectPortalHelper
         IclProjectAssignment.where(:user_id => user, :icl_project_id => IclProject.where(:course_id=>course)).first()
     end
 
+    def is_teacher_in_course(user, course)
+        course.teachers.exists?(:id => user)
+    end
+
+    def is_student_in_course(user, course)
+        course.students.exists?(:id => user)
+    end
+
+    def get_project_supervised_by_teacher(user, course)
+        IclProjectAssignment.where(:icl_project_id => IclProject.where(:user_id => user, :course_id => course))
+    end
+
+    
+
 end

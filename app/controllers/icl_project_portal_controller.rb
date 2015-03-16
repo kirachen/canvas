@@ -90,7 +90,7 @@ class IclProjectPortalController < ApplicationController
 
   def assign_projects
 
-    IclProjectAssignment.where(:user_id => params[:user_id]).destroy_all()
+    IclProjectAssignment.where(:user_id => params[:user_id], :icl_project_id => params[:icl_project_id]).destroy_all()
     project = IclProject.where(:id => params[:icl_project_id]).first()
     p "PARAMETERS"
     p params
@@ -105,6 +105,12 @@ class IclProjectPortalController < ApplicationController
     redirect_to action: "project_assignments"
   end
 
+  def your_projects
+    @courses = Course.all
+    @is_admin = is_main_admin(@current_user)
+
+  end
+
   def delete_project_assignment
     IclProjectAssignment.where(:icl_project_id => params[:project_id], :user_id => params[:user_id]).destroy_all()
     redirect_to action: "project_assignments"
@@ -113,5 +119,16 @@ class IclProjectPortalController < ApplicationController
   def project_assignments
     @courses_with_projects = Course.where(:id => IclProject.all().map(&:course_id))
     @is_admin = is_main_admin(@current_user)
+  end
+
+  def mark_project
+
+    project_assignment = IclProjectAssignment.where(:id => params[:assigned_project_id]).first()
+    project_assignment.mark = params[:mark]
+    project_assignment.save()
+    p "PARAMETERS"
+    p project_assignment
+    p params
+    redirect_to action: "your_projects"
   end
 end

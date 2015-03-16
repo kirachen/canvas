@@ -1,0 +1,36 @@
+<%= render "shared/icl_pp_sidebar" %>
+
+<% @courses.each do |course| %>
+
+    <%
+    is_student = is_student_in_course(@current_user, course)
+    is_teacher = is_teacher_in_course(@current_user, course) 
+    %>
+    <% if(is_student || is_teacher) then %>
+        <h3><%= course.name %></h3>
+        <hr />
+        <% if is_teacher then %>
+            <% assigned_projects = get_project_supervised_by_teacher(@current_user, course) %>
+            <% assigned_projects.each do |assigned_project| %>
+
+                <p>Project: <%= assigned_project.icl_project.title %></p>
+                <p>User: <%= assigned_project.user.name %> </p>
+                <p>Mark: <%= assigned_project.mark %> </p>
+                <p>Mark:</p>
+                <%= form_tag(controller: "icl_project_portal", action: "mark_project", method: "post") do %>
+                    <%= select_tag(:mark, options_for_select([["N/A", "N/A"], ["N/P", "N/P"], ["A*", "A*"], ["A+", "A+"], ["A", "A"], ["B", "B"], ["C", "C"], ["D", "D"], ["E", "E"], ["F", "F"]])) %>
+                    <%= hidden_field_tag 'assigned_project_id', assigned_project.id %>
+                    <%= submit_tag("Mark", :class => 'btn btn-primary') %>
+                <% end %>
+            <% end %>
+        <% end %>
+
+        <% if is_student then %>
+
+        <% end %>
+    <% end %>
+
+
+<% end %>
+
+<%= render "shared/icl_pp_footer" %>

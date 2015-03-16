@@ -9,6 +9,7 @@
             <% if @is_admin then %>
             <li><%=link_to "Assign Projects", controller: "icl_project_portal", action: "project_assignments" %></li>
             <% end %>
+            <li><%=link_to "Your Projects", controller: "icl_project_portal", action: "your_projects" %></li>
     </ul>
 </div>
 <div class='span8 main'>

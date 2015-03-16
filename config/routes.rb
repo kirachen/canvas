@@ -8,8 +8,10 @@ Dir["{gems,vendor}/plugins/*/config/pre_routes.rb"].each { |pre_routes|
 CanvasRails::Application.routes.draw do
 
   get "icl_project_portal/create"
+  get "icl_project_portal/your_projects"
   get "icl_project_portal/project_assignments"
   post "icl_project_portal/create_project"
+  post "icl_project_portal/mark_project"
   post "icl_project_portal/choose_indiv"
   post "icl_project_portal/choose_projects"
   post "icl_project_portal/assign_projects"
