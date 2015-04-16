@@ -2274,6 +2274,9 @@ class Course < ActiveRecord::Base
   TAB_ANNOUNCEMENTS = 14
   TAB_OUTCOMES = 15
   TAB_COLLABORATIONS = 16
+  # Imperial College London: PPT/PMT - Attendance sheet
+  TAB_ATTENDANCE = 17
+  # End
 
   def self.default_tabs
     [
@@ -2282,6 +2285,9 @@ class Course < ActiveRecord::Base
       { :id => TAB_ASSIGNMENTS, :label => t('#tabs.assignments', "Assignments"), :css_class => 'assignments', :href => :course_assignments_path, :screenreader => t('#tabs.course_assignments', "Course Assignments") },
       { :id => TAB_DISCUSSIONS, :label => t('#tabs.discussions', "Discussions"), :css_class => 'discussions', :href => :course_discussion_topics_path },
       { :id => TAB_GRADES, :label => t('#tabs.grades', "Grades"), :css_class => 'grades', :href => :course_grades_path, :screenreader => t('#tabs.course_grades', "Course Grades") },
+      # Imperial College London: PPT/PMT - Attendance Sheet
+      { :id => TAB_ATTENDANCE, :label => "Attendance", :css_class => "attendance", :href => :course_attendance_path },
+     # End
       { :id => TAB_PEOPLE, :label => t('#tabs.people', "People"), :css_class => 'people', :href => :course_users_path },
       { :id => TAB_PAGES, :label => t('#tabs.pages', "Pages"), :css_class => 'pages', :href => :course_wiki_path },
       { :id => TAB_FILES, :label => t('#tabs.files', "Files"), :css_class => 'files', :href => :course_files_path },

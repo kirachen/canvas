@@ -323,8 +323,17 @@ module ApplicationHelper
           else
             link = "<a href='#{path}' class='#{class_name}'>#{tab[:label]}</a>"
           end
-
-          html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]
+          # Imperial College London: PPT/PMT - Attendance
+          # Tab attendance has tab id 17
+          # only shows if it is a PPT or PMT course and current user is not a student
+          if tab[:id] == 17
+            if (@context.name == "PPT" || @context.name == "PMT") && !@context.user_is_student?(@current_user)
+              html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]
+            end
+          else
+            html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]
+          end
+          # End
         end
         html << "</ul></nav>"
         html.join("")
