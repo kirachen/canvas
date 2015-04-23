@@ -1,20 +1,110 @@
+<!-- Imperial College London: PPT/PMT - Attendance -->
+<!-- This file exists but the feature is not supported -->
+<!-- So I took this file and made it into what I want it to be -->
 <% content_for :page_title do %><%= t(:page_title, "Attendance") %><% end %>
-
-<% if @assignments.empty? %>
-  <div style="margin-left: 20px;">
-    <h2><%= t('headers.attendance', "Attendance") %></h2>
-    <%= t(:attendance_info, "No attendance assignments have been created.") %>
-  </div>
-<% else %>
-  <style>
+ <style>
   #datagrid_topleft .content .cell, #datagrid_left .content .cell{
     border-left-width: 1px;
   }
   #datagrid_topleft .content .cell, #datagrid_top .content .cell{
     border-top-width: 1px;
   }
+  .student_name {
+    font-size: 17px;
+  }
+  .student_id {
+    font-size: 12px;
+    color: #999;
+  }
+  .tutoring_date {
+    font-size: 15px;
+  }
+  #new_entry_date {
+    width: 140px;
+    height: 20px;
+    margin: auto;
+  }
+  form {
+    margin: 0px;
+  }
+  .update_btn {
+    margin-right: 5px;
+    display: inline-block;
+  }
+  .remove_btn {
+    display: inline-block;
+  }
   </style>
   <div id="attendance_content">
+    <table id="attendance_table" class="ic-Table ic-Table--hover-row">
+      <thead>
+	<tr class="ic-Table__row--bg-neutral">
+	  <th id="top-left-corner"></th>
+	  <% @students.each do |student| %>
+          <th id="student_<%= student.id %>" class="attedance_table_student">
+            <div class="student_name"><%= student.last_name_first %></div>
+            <div class="student_id"><%= student.all_active_pseudonyms.first.unique_id %></div>
+	  </th>
+	  <% end %>
+	  <th> Recorded by </th>
+	  <th id="top-right-corner"></th>
+	</tr>
+      </thead>
+      <% @attendances.each do |attendance| %>
+      <tr class="data-row">
+	<td>
+	  <div class="tutoring_date"><%= attendance.tutoring_date.strftime("%a - %d %b %Y")%></div>
+	</td>
+	<%= form_tag(:controller => "gradebooks", :action => "update_attendance_entry") do %>
+	<% @students.each do |student| %>
+	<td>
+	  <% if attendance.present_student.include?(student.all_active_pseudonyms.first.unique_id) %>
+	  <%= check_box_tag student.all_active_pseudonyms.first.unique_id, 1, true %>    
+	  <% elsif attendance.absent_student.include?(student.all_active_pseudonyms.first.unique_id)%>
+	    <%= check_box_tag student.all_active_pseudonyms.first.unique_id%>
+	  <% end %>
+	</td>
+	<% end %>
+	<td>
+	  <div>
+	    <%= attendance.last_updated_by %> 
+	  </div>
+	  <div class="student_id">
+	    on <%= attendance.updated_at.strftime("%d %b %Y") %>
+	  </div>
+	</td>
+	<td>
+	  <%= hidden_field_tag :attendance, attendance.id %> 
+	  <%= submit_tag("Update", class: "Button Button--small update_btn") %>
+	  <% end %>
+	  <%= form_tag({:controller => "gradebooks", :action => "remove_entry"}, :class => "remove_btn") do %>
+	  <%= hidden_field_tag :attendance, attendance.id %>
+	  <%= submit_tag("Delete ", class: "Button Button--danger Button--small") %>
+	  <% end %>
+	</td>
+      </tr>
+      <% end %>
+      <%= form_tag(:controller => "gradebooks", :action => "new_entry") do %>
+      <tr>
+	<td>
+	  <%= text_field_tag(:new_entry_date) %>
+	  <button type="button" id="pickdate-trigger" class="btn btn-default" aria-hidden="true" tabindex="-1">
+	    <i class="icon-calendar-month"></i>
+	  </button>
+	</td>
+	<% @students.each do |student| %>
+	<td>
+	  <%= check_box_tag student.all_active_pseudonyms.first.unique_id, 1, true %>
+	</td>
+	<% end %>
+	<td></td>
+	<td>
+	  <%= submit_tag("Submit ", class: "Button Button--small", id: "submit_btn") %>
+	</td>
+      </tr>
+      <% end %>
+    </table>
+    <!--
     <div id="datagrid_topleft" class="datagrid">
       <div class="content">
       </div>
@@ -44,50 +134,47 @@
             <a href="#" class="help_link help"><%= t(:how_do_i, "How Do I...?") %></a>
           </div>
         </td>
-        <% @assignments.each do |assignment| %>
-          <td id="assignment_<%= assignment.id %>" class="assignment">
-            <div class="assignment_content">
-              <div class="title no-hover no-underline" title="<%= assignment.title %>"><a href="<%= context_url(@context, :edit_context_assignment_url, assignment.id) %>"><%= assignment.title %></a></div>
-              <% if @at_least_one_due_at %>
-                <div class="due_at"><%= datetime_string(assignment.due_at) rescue nbsp %>&nbsp;</div>
-              <% end %>
-              <div class="possible" style="float: left;"><%= t('#gradebooks.out_of_points_possible', "out of %{points_possible}", :points_possible => assignment.points_possible) if assignment.points_possible %></div>
-              <div class="options"><a href="#" class="options_dropdown no-hover"><%= image_tag "blank.png", :alt => '' %></a></div>
-            </div>
-          </td>
+	<% @students.each do |student| %>
+        <td id="student_<%= student.id %>" class="student">
+          <div class="student_content">
+            <%= student.last_name_first %>
+            <div class="secondary_identifier" style="margin-left: 0px"><%= student.secondary_identifier %></div>
+	  </div>
+	</td>
+	<% end %>
+      </tr>
+      <tr>
+	<% @assignments.each do |assignment| %>
+        <td id="assignment_<%= assignment.id %>" class="assignment">
+          <div class="assignment_content">
+            <div class="title no-hover no-underline" title="<%= assignment.title %>"><a href="<%= context_url(@context, :edit_context_assignment_url, assignment.id) %>"><%= assignment.title %></a></div>
+            <% if @at_least_one_due_at %>
+            <div class="due_at"><%= datetime_string(assignment.due_at) rescue nbsp %>&nbsp;</div>
+            <% end %>
+            <div class="possible" style="float: left;"><%= t('#gradebooks.out_of_points_possible', "out of %{points_possible}", :points_possible => assignment.points_possible) if assignment.points_possible %></div>
+            <div class="options"><a href="#" class="options_dropdown no-hover"><%= image_tag "blank.png", :alt => '' %></a></div>
+          </div>
+        </td>
+	<% @students.each do |student| %>
+	<td id="submission_<%= student.id %>_<%= assignment.id %>" class="submission" title="<%= t('titles.click_to_change', "Click to Change") %>">
+          <div class="submission_content" title="<%= t('titles.click_to_change', "Click to Change") %>"><%= image_tag "blank.png", :alt => '', :class => "blank_attendance" %></div>
+        </td>
+	<% end %>
         <% end %>
-        <td class="assignment">
+      </tr>
+      <tr>
+	<td class="assignment">
           <div class="assignment_content">
             <div class="title">
-              &nbsp;<br/>
-              <a href="#" class="add add_assignment_link"><%= t('links.add_column', "Add Column") %></a>
+              <a href="#" class="add add_assignment_link"><%= t('links.add_column', "New Entry") %></a>
             </div>
           </div>
         </td>
       </tr>
-      <% @students.each do |student| %>
-        <tr>
-          <td id="student_<%= student.id %>" class="student">
-            <div class="student_content">
-              <a href="<%= context_url(@context, :context_url) %>/attendance/<%= student.id %>"><%= student.last_name_first %></a>
-              <div class="secondary_identifier"><%= student.secondary_identifier %></div>
-            </div>
-          </td>
-          <% @assignments.each do |assignment| %>
-            <td id="submission_<%= student.id %>_<%= assignment.id %>" class="submission" title="<%= t('titles.click_to_change', "Click to Change") %>">
-              <div class="submission_content" title="<%= t('titles.click_to_change', "Click to Change") %>"><%= image_tag "blank.png", :alt => '', :class => "blank_attendance" %></div>
-            </td>
-          <% end %>
-          <td class="false_submission">
-            <div class="false_submission_content">&nbsp;</div>
-          </td>
-        </tr>
-      <% end %>
     </table>
   </div>
   <div style="display: none;">
     <div id="new_assignment_dialog">
-      <h3><%= t('headers.new_column', "New Attendance Column") %></h3>
       <%= form_for :assignment, :url => context_url(@context, :context_assignments_url), :html => {:id => "add_assignment_form"} do |f| %>
       <%= f.hidden_field :submission_types, :value => "attendance" %>
       <table class="formtable">
@@ -143,8 +230,7 @@
     <%= image_tag "fail.png", :class => "incomplete_attendance" %>
     <a href="<%= context_url(@context, :update_submission_context_gradebook_url) %>" class="grade_submission_url">&nbsp;</a>
     <a href="<%= context_url(@context, :context_assignment_url, "{{ assignment_id }}") %>" class="set_default_grade_url">&nbsp;</a>
-    <a href="<%= context_url(@context, :context_gradebook_url) %>" class="gradebook_url">&nbsp;</a>
+    <a href="<%= context_url(@context, :context_gradebook_url) %>" class="gradebook_url">&nbsp;</a>-->
   </div>
   <% jammit_css :datagrid, :attendance %>
   <% js_bundle :datagrid, :attendance %>
-<% end %>

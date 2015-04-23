@@ -220,7 +220,7 @@ class Course < ActiveRecord::Base
 
   has_many :sis_post_grades_statuses
   has_one :icl_pptpmt_courses #Imperial College London: PPT/PMT
-  has_one :icl_attendances #Imperial College London: PPT/PMT - Attendnace
+  has_one :icl_attendance #Imperial College London: PPT/PMT - Attendnace
 
   include Profile::Association
 

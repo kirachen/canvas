@@ -199,6 +199,9 @@ CanvasRails::Application.routes.draw do
 
     get 'attendance' => 'gradebooks#attendance'
     get 'attendance/:user_id' => 'gradebooks#attendance', as: :attendance_user
+    post 'attendance/new_entry' => 'gradebooks#new_entry' # Imperial College London: PPT/PMT - Attendance
+    post 'attendance/update_attendance_entry' => 'gradebooks#update_attendance_entry' # Imperial College London: PPT/PMT - Attendance
+    post 'attendance/remove_entry' => 'gradebooks#remove_entry' # Imperial College London: PPT/PMT - Attendance
     concerns :zip_file_imports
     # DEPRECATED old migration emails pointed the user to this url, leave so the controller can redirect
     get 'imports/list' => 'content_imports#index', as: :import_list
