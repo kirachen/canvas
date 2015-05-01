@@ -6,9 +6,20 @@
      <% course.students.each do |student| %>
 
      	<p><b><%= student.name %></b></p>
+        <p><b>Preference table:</b></p>
+        <table class="table">
+            <thead>
+                <th>Project Title</th>
+                <th>Preference</th>
+            </thead>
      	<% get_choices_for_user(student, course).each do |choice| %>
-     		<p>Preference #<%= choice.preference%> : <%= choice.icl_project.title%> </p>
+            <tr>
+                <td><%= choice.icl_project.title%></td>
+                <td>#<%= choice.preference%></td>
+            </tr>
+     		
      	<% end %>
+        </table>
      	<% assigned = get_assigned_project(student, course) %>
      	<p>Assigned project: <%= if assigned then assigned.icl_project.title else "None" end %></p>
      	<p>Assign a project:</p>

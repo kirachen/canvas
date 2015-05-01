@@ -16,10 +16,13 @@ CanvasRails::Application.routes.draw do
   post "icl_project_portal/choose_projects"
   post "icl_project_portal/assign_projects"
   get "icl_project_portal/show"
+  get "icl_project_portal/assess"
+  post "icl_project_portal/assess"
   get "icl_project_portal/course_projects"
   get "icl_project_portal/individual_projects"
   post "icl_project_portal/choose_individual_project_course"
   post "icl_project_portal/choose"
+  post "icl_project_portal/create_project_with_params"
   resources :submission_comments, only: :destroy
 
   get 'inbox' => 'context#inbox'

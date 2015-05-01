@@ -1,28 +1,60 @@
 <%= render "shared/icl_pp_sidebar" %>
-
+<style>
+select {
+    max-width: 100px;
+}
+</style>
 <% @courses.each do |course| %>
 
     <%
     is_student = is_student_in_course(@current_user, course)
-    is_teacher = is_teacher_in_course(@current_user, course) 
+    is_teacher = is_teacher_in_course(@current_user, course)
+    is_second_marker_course = is_second_marker_in_course(course, @current_user.id)
     %>
-    <% if(is_student || is_teacher) then %>
+    <% if(is_student || is_teacher || is_second_marker_course) then %>
         <h3><%= course.name %></h3>
+        <% if is_teacher || is_second_marker_course then %>
+        <h4>The projects you supervise</h4>
         <hr />
-        <% if is_teacher then %>
-            <% assigned_projects = get_project_supervised_by_teacher(@current_user, course) %>
-            <% assigned_projects.each do |assigned_project| %>
+        
+            <table class="table">
+                <thead>
+                    <th>Project</th>
+                    <th>User</th>
+                    <% if is_teacher then %>
+                    <th>2nd Marker</th>
+                    <% end %>
+                    <th>Assessment</th>
 
-                <p>Project: <%= assigned_project.icl_project.title %></p>
-                <p>User: <%= assigned_project.user.name %> </p>
-                <p>Mark: <%= assigned_project.mark %> </p>
-                <p>Mark:</p>
-                <%= form_tag(controller: "icl_project_portal", action: "mark_project", method: "post") do %>
-                    <%= select_tag(:mark, options_for_select([["N/A", "N/A"], ["N/P", "N/P"], ["A*", "A*"], ["A+", "A+"], ["A", "A"], ["B", "B"], ["C", "C"], ["D", "D"], ["E", "E"], ["F", "F"]])) %>
+                    <th>Mark</th>
+                    <th>Submit</th>
+
+                </thead>
+            <% assigned_projects = get_project_supervised_by_teacher(@current_user, course) %>
+            
+            <% assigned_projects.each do |assigned_project| %>
+            <% is_second_marker = is_second_marker(assigned_project.icl_project, @current_user.id) %>
+            
+            <% next if (is_second_marker_course and (not is_second_marker)) %>
+                <tr>
+                    <td><%= assigned_project.icl_project.title %></td>
+                    <td><%= assigned_project.user.name %></td>
+                    <%= form_tag(controller: "icl_project_portal", action: "mark_project", method: "post") do %>
+                    <% if (is_teacher) then %>
+                    <td>
+                        <%= select_tag(:second_marker, options_for_select([["No marker", nil]] + get_all_teachers, selected: assigned_project.second_marker_id)) %>
+                    </td>
+                    <% end %>
+                    <td><a href="assess?project_id=<%= assigned_project.icl_project_id %>&student_id=<%= assigned_project.user_id %>">Assess</a></td>
+                
+                
+                    <td><%= select_tag(:mark, options_for_select([["N/A", "N/A"], ["N/P", "N/P"], ["A*", "A*"], ["A+", "A+"], ["A", "A"], ["B", "B"], ["C", "C"], ["D", "D"], ["E", "E"], ["F", "F"]], selected: assigned_project.mark)) %></td>
                     <%= hidden_field_tag 'assigned_project_id', assigned_project.id %>
-                    <%= submit_tag("Mark", :class => 'btn btn-primary') %>
+                    <td><%= submit_tag("Submit", :class => 'btn btn-primary') %></td>
+                </tr>
                 <% end %>
             <% end %>
+            </table>
         <% end %>
 
         <% if is_student then %>

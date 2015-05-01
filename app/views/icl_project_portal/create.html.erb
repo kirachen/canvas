@@ -1,10 +1,14 @@
 <%= render "shared/icl_pp_sidebar" %>
 <h1>Add New Project</h1>
+<% should_show = params[:project_id] != nil %>
+<% project = if should_show then get_project_by_id(params[:project_id]) else nil end %>
+<% project_title = if should_show then project.title else "" end %>
+<% project_description = if should_show then project.description else "" end %>
 
 <%= form_tag(controller: "icl_project_portal", action: "create_project", method: "post") do %>
   <%= label_tag(:title, "Project Title:") %>
   <br />
-  <%= text_field_tag(:title, nil, :class => 'course_form') %>
+  <%= text_field_tag(:title, nil, :class => 'course_form', :value => project_title) %>
   <br />
   <%= label_tag(:category, "Project Type:") %>
   <br />
@@ -21,10 +25,21 @@
 
   <% end %>
   <br />
+  <%= label_tag(:select_from_archive, "Select from archive")%>
+  <br />
+  <% archived_projects = get_archived_projects %>
+    <%= select_tag(:select_from_archive, options_for_select(archived_projects.map{|project| [project.title, project.id]}))%>
+    <%= submit_tag("Show", :class => 'btn btn-primary', :name => "show_from_archive") %>
+  <br />
+  <%= check_box_tag 'archive' %>
+  <%= label_tag(:archive, "Archive (for later usage)")%>
+  <br />
   <%= label_tag(:description, "Project Description:") %>
   <br />
-  <%= text_area_tag(:description, nil, :cols => 5, :rows => 10, :class => "span4") %>
+  <%= text_area_tag(:description, project_description, :cols => 5, :rows => 10, :class => "span4", ) %>
   <br />
   <%= submit_tag("Create Project", :class => 'btn btn-primary') %>
 <% end %>
 <%= render "shared/icl_pp_footer" %>
+<!-- See smth here? -->
+<% javascript_include_tag(:application => "icl_project_portal") %>

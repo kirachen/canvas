@@ -19,6 +19,22 @@ class IclProjectPortalController < ApplicationController
     @is_admin = is_main_admin(@current_user)
   end
 
+  def assess
+    #p "Here we go!"
+    @is_admin = is_main_admin(@current_user)
+    #p params[:student_id]
+    #p params[:project_id]
+    #p params[:comment]
+    if params.include?(:comment)
+      @audit_trail = IclAuditTrail.new(entry:params[:comment])
+      @audit_trail.user = User.find(params[:student_id])
+      @audit_trail.icl_project = IclProject.find(params[:project_id])
+      @audit_trail.save()
+      #user_id:params[:student_id],icl_project_id:params[:project_id]
+      #add_to_audit_trail(params[:student_id], params[:project_id], params[:comment])
+    end
+  end
+
   def create
     @thought_courses = get_thought_courses(@current_user)
     @is_teacher = @thought_courses != nil
@@ -38,13 +54,24 @@ class IclProjectPortalController < ApplicationController
   def create_project
     @icl_project = IclProject.new(title:params[:title], description:params[:description], category:params[:category])
     #Current user is owner of the project
-    p "Parameters"
+    if params[:show_from_archive]
+      redirect_to action: "create", project_id: params[:select_from_archive]
+      return
+    end
     p params
     @icl_project.user = @current_user
     @icl_project.course = Course.where(:id => params[:course]).first()
+    @icl_project.archived = params.has_key?(:archive)
+    
     @icl_project.save()
     redirect_to action: "create"
   end
+
+  def create_project_with_params
+
+  end
+
+
 
   def choose_indiv
     choose_project(params)
@@ -122,9 +149,11 @@ class IclProjectPortalController < ApplicationController
   end
 
   def mark_project
-
+    p "Parameters mark"
+    p params
     project_assignment = IclProjectAssignment.where(:id => params[:assigned_project_id]).first()
     project_assignment.mark = params[:mark]
+    project_assignment.second_marker = User.find_by_id(params[:second_marker])
     project_assignment.save()
     p "PARAMETERS"
     p project_assignment

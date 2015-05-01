@@ -1,0 +1,47 @@
+<%= render "shared/icl_pp_sidebar" %>
+<style>
+#comments, #comments li {
+    margin: 0;
+    padding: 0;
+}
+ 
+#comments li {
+    list-style: none;
+}
+</style>
+<%= params["project_id"] %>
+<h2>Assessment for project</h2>
+<ul id="comments" class="comments">
+	<% audit_trail = get_audit_trail(params["student_id"], params["project_id"]) %>
+	<% audit_trail.each do |entry| %>
+
+	<li class="comment">
+		<div class="clearfix">
+			<h4 class="pull-left"><%= entry.user.name %></h4>
+			<p class="pull-right"><%= entry.created_at %></p>
+		</div>
+			<p><%= entry.entry %></p>
+		
+	</li>
+
+	<% end %>
+
+</ul>
+
+<%= form_tag(controller: "icl_project_portal", action: "assess", method: "post") do %>
+    <%= label_tag(:comment, "Comment:") %>
+    <%= hidden_field_tag(:student_id, params["student_id"])%>
+    <%= hidden_field_tag(:project_id, params["project_id"])%>
+    <br />
+    <%= text_area_tag(:comment, "", :cols => 10, :rows => 10, :class => "span4", ) %>
+    <br />
+    
+    <%= check_box_tag 'feedback' %>
+    <%= label_tag(:archive, "Send to student (as feedback)")%>
+    <br />
+    <%= submit_tag("Submit", :class => 'btn btn-primary') %>
+    <br />
+<% end %>
+  
+
+<%= render "shared/icl_pp_footer" %>

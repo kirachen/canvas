@@ -1,0 +1,58 @@
+<table class="table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Course</th>
+      <th>Supervisor</th>
+      <th>Description</th>
+      <th>Your choice</th>
+      <th>Select</th>
+    </tr>
+  </thead>
+<% projects.each do |course| %>
+  
+  <% if course_has_projects(course) %>
+
+    
+
+      <% get_course_projects(course).each do |project| %>
+      <% modal_id = "dialog" + project.id.to_s %>
+        <tr>
+        <td>  <%= project.title %> </td>
+        <td> <%= course.name %> </td>
+        <td>  <%= project.user.name if project.user %></td>
+        
+          
+        <td><a class="element_toggler" aria-controls=<%= modal_id %>>Show</a></td>
+
+        <div id="<%= modal_id %>" data-turn-into-dialog='{"width":600,"modal":true}' style="display:none" title="<%= project.title %>">
+          <%= project.description %>
+          <div class="button-container">
+            <a class="btn dialog_closer">Close</a>
+          </div>
+        </div>
+
+
+        <!--<td><%= project.description %></td>-->
+            <% preference = get_preference_for_project(@current_user, project) %>
+            <!--<p>Choice Made: <%=  if preference then "Preference #" + preference.preference.to_s else "No choice" end %> </p> -->
+
+
+
+        <%= form_tag(controller: "icl_project_portal", action: action, method: "get") do %>
+        <td><%= select_tag(:preference, options_for_select((if preference != nil then [[nil, nil]] + [[preference.preference, preference.preference]] else [[nil, nil]] end) + get_possible_choices(@current_user, project.id).map{|option| [option, option]}, selected: if preference then preference.preference else nil end )) %></td>
+            <%= hidden_field_tag 'project_id', project.id %>
+        <td><%= submit_tag("Choose", :class => 'btn btn-primary') %></td>
+              
+
+            <% end %>
+            
+          </tr>
+      <% end %>
+      
+  <% end %>
+        
+
+      
+<% end %>
+</table>

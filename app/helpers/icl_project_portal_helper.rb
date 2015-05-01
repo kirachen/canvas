@@ -88,14 +88,40 @@ module IclProjectPortalHelper
         course.teachers.exists?(:id => user)
     end
 
+    def get_all_teachers
+        Enrollment.where(:type=>"TeacherEnrollment").map{|e| [e.user.name, e.user.id]}.uniq
+    end
+
+    def is_second_marker(project_id, user_id)
+        IclProjectAssignment.where(:icl_project_id => IclProject.find(project_id), :second_marker_id => User.find(user_id)).any?
+    end
+
+    def is_second_marker_in_course(course, user_id)
+        IclProjectAssignment.where(:second_marker_id => user_id, :icl_project_id => IclProject.where(:course_id => course)).any?
+    end
+
     def is_student_in_course(user, course)
         course.students.exists?(:id => user)
     end
 
     def get_project_supervised_by_teacher(user, course)
-        IclProjectAssignment.where(:icl_project_id => IclProject.where(:user_id => user, :course_id => course))
+        ((IclProjectAssignment.where(:icl_project_id => IclProject.where(:user_id => user, :course_id => course))) + IclProjectAssignment.where(:second_marker_id => user, :icl_project_id => IclProject.where(:course_id => course)))
     end
 
-    
+    def get_project_by_id(project_id)
+        IclProject.where(:id => project_id).first
+    end
+
+    def get_archived_projects
+        IclProject.where(:archived => true)
+    end
+
+    def add_to_audit_trail(user_id, icl_project_id, entry)
+        IclAuditTrail.create(:user_id => User.find(user_id),:icl_project_id => IclProject.find(icl_project_id), :entry => entry )
+    end
+
+    def get_audit_trail(user_id, icl_project_id)
+        IclAuditTrail.where(:user_id => User.find(user_id), :icl_project_id => IclProject.find(icl_project_id))
+    end
 
 end
