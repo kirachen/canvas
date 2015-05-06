@@ -947,6 +947,24 @@ class AssignmentsApiController < ApplicationController
   end
 
   def save_and_render_response
+    # Imperial College London: Multiple Marker
+    # If no grading standard is chosen when choosing to display letter grade
+    # then checks if the course has any grading standard and use the first one
+    # by default. If not then use the department one by default
+    if params[:assignment][:grading_type] == "letter_grade"
+      if !params[:assignment][:grading_standard_id].present?
+        grading_standards = GradingStandard.active.where("context_id=? AND context_type=?", params[:assignment][:course_id], "Course")
+        if grading_standards.exists?
+          params[:assignment][:grading_standard_id] = grading_standards.first.id
+        else
+          grading_standards = GradingStandard.active.where("context_id=? AND context_type=?", "1", "Account")
+          if grading_standards.exists?
+            params[:assignment][:grading_standard_id] = grading_standards.first.id
+          end
+        end
+      end
+    end
+    # End
     @assignment.content_being_saved_by(@current_user)
     # Imperial College London: PPT/PMT
     old_title = @assignment.name
