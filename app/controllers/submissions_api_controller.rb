@@ -607,6 +607,21 @@ class SubmissionsApiController < ApplicationController
           :assessment => assessment.merge(:assessment_type => 'grading'))
       end
 
+      # Imperial College London: Multiple Marker
+      if !params[:comment].present?
+        editors_comments = []
+        SubmissionComment.where("submission_id = ?", @submission.id).order(:created_at).each do |sc|
+          if sc.comment.include? "graded by"
+            editors_comments.push(sc.comment)
+          end
+        end
+        new_comment = "graded by " + @current_user.all_active_pseudonyms.first.unique_id
+        # check if the last editor is the current user
+        if !editors_comments.any? or !editors_comments.last.include? new_comment
+          params[:comment] = {"text_comment" => "graded by " + @current_user.all_active_pseudonyms.first.unique_id}
+        end
+      end
+      # end
       comment = params[:comment]
       if comment.is_a?(Hash)
         admin_in_context = !@context_enrollment || @context_enrollment.admin?

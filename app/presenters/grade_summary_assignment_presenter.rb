@@ -82,14 +82,20 @@ class GradeSummaryAssignmentPresenter
   end
 
   def published_grade
-    is_letter_graded_or_gpa_scaled? ? "(#{submission.published_grade})" : ''
+    # Imperial College London: Multiple Marker
+    # Getting rid of the bracket around grade for display purpose
+    is_letter_graded_or_gpa_scaled? ? "#{submission.published_grade}" : ''
   end
 
   def display_score
     if has_no_score_display?
       ''
     else
-      "#{submission.published_score} #{published_grade}"
+      # Imperial College London: Multiple Marker
+      # Hiding the score away from students
+      # Showing only the grade
+      #"#{submission.published_score} 
+      "#{published_grade}"
     end
   end
 

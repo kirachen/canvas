@@ -346,6 +346,20 @@ class GradebooksController < ApplicationController
           end
           submission[:comment_attachments] = attachments
         end
+        # Imperial College London: Multiple Marker
+        submission_id = Assignment.find(submission[:assignment_id]).submissions.where("user_id=?",submission[:user_id]).first.id
+        editors_comments = []
+        SubmissionComment.where("submission_id = ?", submission_id).order(:created_at).each do |sc|
+          if sc.comment.include? "graded by"
+            editors_comments.push(sc.comment)
+          end
+        end
+        new_comment = "graded by " + @current_user.all_active_pseudonyms.first.unique_id
+        # check if the last editor is the current user
+        if !editors_comments.any? or !editors_comments.last.include? new_comment
+          submission[:comment] = "graded by " + @current_user.all_active_pseudonyms.first.unique_id
+        end
+        # End
         begin
           # if it's a percentage graded assignment, we need to ensure there's a
           # percent sign on the end. eventually this will probably be done in
