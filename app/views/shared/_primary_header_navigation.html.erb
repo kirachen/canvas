@@ -25,13 +25,20 @@
         <% if k12? %></div><% end %>
       </a>
     </li>
-    <!-- Imperial College London: Teaching Database-->
-    <li id="teaching_db_menu_item" class="menu-item">
+    <!-- Imperial College London: Teaching Database -->
+    <li class="menu-item">
       <a href="https://teachdb.doc.ic.ac.uk/db/" class="menu-item-no-drop">
-          <div class="menu-item__text">Teaching Database</div>
+          <div class="menu-item__text">Database</div>
+      </a>
+    </li>
+    <!-- Imperial College London: Course Subscription -->
+    <li class="menu-item">
+      <a href="https://dbc.doc.ic.ac.uk/internalreg" class="menu-item-no-drop">
+          <div class="menu-item__text">Subscription</div>
       </a>
     </li>
     <!-- end -->
+    
     <%# Inbox menu item currently only for K-12 %>
     <% if k12? %>
       <% unless @current_user.fake_student? %>
