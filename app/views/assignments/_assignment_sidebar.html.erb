@@ -21,7 +21,8 @@
           cover_sheet_course_assignment_path(
 	  :course_id => @context.id,
 	  :student_name => @current_user.sortable_name,
-          :student_id => @current_user.all_active_pseudonyms.first.unique_id,
+          :student_id => @current_user.id,
+          :student_login => @current_user.all_active_pseudonyms.first.unique_id,
           :course_title => @context.name,
           :course_code => @context.course_code,
           :exercise_title => @assignment.name,

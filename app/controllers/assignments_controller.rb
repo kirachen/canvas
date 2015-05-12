@@ -529,8 +529,9 @@ class AssignmentsController < ApplicationController
           memberships = GroupMembership.active.where(:group_id => group.id)
           memberships.each do |membership|
             user = User.find(membership.user_id)
+            cls = IclStudentCls.where("user_id=?", user.id).first.cls
             if user.all_active_pseudonyms.first.unique_id != @current_user.all_active_pseudonyms.first.unique_id
-              group_members.push({"name" => user.sortable_name, "id" => user.all_active_pseudonyms.first.unique_id, "class" => "c4"})
+              group_members.push({"name" => user.sortable_name, "id" => user.all_active_pseudonyms.first.unique_id, "class" => cls})
             end
           end
 	end
@@ -540,14 +541,14 @@ class AssignmentsController < ApplicationController
     issued_at = Time.parse(issued_date + " " + issued_time)
     due_date, due_time = params[:due_date].split(" ")
     due_at = Time.parse(due_date + " " + due_time)
-    cover_sheet_name = params[:student_id] + params[:course_code] + params[:exercise_id] + ".pdf"
+    cover_sheet_name = params[:student_login] + params[:course_code] + params[:exercise_id] + ".pdf"
     enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first
     teacher = User.find(enrollment.user_id)
-    
+    student_cls = IclStudentCls.where("user_id=?", params[:student_id]).first.cls
     cover_sheet = IclCoverSheet.new(
         params[:student_name], 
-        params[:student_id], 
-        "c4", # This grouping will happen after feature Student Grouping
+        params[:student_login], 
+        student_cls,
         teacher.name, 
         teacher.all_active_pseudonyms.first.unique_id, 
         params[:course_title], 
