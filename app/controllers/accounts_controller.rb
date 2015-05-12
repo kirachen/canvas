@@ -613,6 +613,13 @@ class AccountsController < ApplicationController
     @user = api_find(User, params[:user_id])
     raise ActiveRecord::RecordNotFound unless @account.user_account_associations.where(user_id: @user).exists?
     if @user.allows_user_to_remove_from_account?(@account, @current_user)
+      # Imperial Collge London: Student Class
+      # Remove the record when a user is deleted
+      if User.find(@user.id).icl_student_cls.present?
+        cls = IclStudentCls.where("user_id=?", @user.id)
+        cls.destroy_all
+      end
+      # End
       @user.remove_from_root_account(@account)
       flash[:notice] = t(:user_deleted_message, "%{username} successfully deleted", :username => @user.name)
       respond_to do |format|

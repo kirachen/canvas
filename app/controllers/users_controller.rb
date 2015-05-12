@@ -1163,6 +1163,14 @@ class UsersController < ApplicationController
         @pseudonym.send(:skip_session_maintenance=, true)
       end
       @user.save!
+      # Imperial College London: Student Class
+      if params[:class]
+        cls = IclStudentCls.new
+        cls.user_id = @user.id
+        cls.cls = params[:class]
+        cls.save
+      end
+      # End
       if @observee && !@user.user_observees.where(user_id: @observee).exists?
         @user.user_observees << @user.user_observees.create!{ |uo| uo.user_id = @observee.id }
       end

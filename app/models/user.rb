@@ -151,7 +151,7 @@ class User < ActiveRecord::Base
   has_many :progresses, :as => :context
 
   belongs_to :otp_communication_channel, :class_name => 'CommunicationChannel'
-
+  has_one :icl_student_cls #Imperial College London: Add Classes
   include StickySisFields
   are_sis_sticky :name, :sortable_name, :short_name
 
