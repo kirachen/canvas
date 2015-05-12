@@ -568,6 +568,17 @@ class CoursesController < ApplicationController
 
       respond_to do |format|
         if @course.save
+          # Imperial College London: PPT/PMT
+          is_pmt_included = params[:course][:pmt_included]
+          is_ppt_included = params[:course][:ppt_included]
+          if is_pmt_included != nil and is_ppt_included != nil
+            pptpmt = IclPptpmtCourses.new
+            pptpmt.course_id = @course.id
+            pptpmt.pmt_included = is_pmt_included == "1"
+            pptpmt.ppt_included = is_ppt_included == "1"
+            pptpmt.save
+          end
+          # end
           Auditors::Course.record_created(@course, @current_user, changes, source: (api_request? ? :api : :manual))
           @course.enroll_user(@current_user, 'TeacherEnrollment', :enrollment_state => 'active') if params[:enroll_me].to_s == 'true'
           @course.require_assignment_group rescue nil
@@ -1980,14 +1991,14 @@ class CoursesController < ApplicationController
       is_pmt_included = params[:course][:pmt_included]
       is_ppt_included = params[:course][:ppt_included]
       if is_pmt_included != nil and is_ppt_included != nil
-        icl = Course.find(@course.id).icl_pptpmt_courses
-        if icl == nil
-          icl = IclPptpmtCourses.new
-          icl.course_id = @course.id
+        pptpmt = Course.find(@course.id).icl_pptpmt_courses
+        if pptpmt == nil
+          pptpmt = IclPptpmtCourses.new
+          pptpmt.course_id = @course.id
         end
-        icl.pmt_included = is_pmt_included == "1"
-        icl.ppt_included = is_ppt_included == "1"
-        icl.save
+        pptpmt.pmt_included = is_pmt_included == "1"
+        pptpmt.ppt_included = is_ppt_included == "1"
+        pptpmt.save
       end
       # end
 
