@@ -571,11 +571,15 @@ class CoursesController < ApplicationController
           # Imperial College London: PPT/PMT
           is_pmt_included = params[:course][:pmt_included]
           is_ppt_included = params[:course][:ppt_included]
-          if is_pmt_included != nil and is_ppt_included != nil
+          is_mmt_included = params[:course][:mmt_included]
+          is_jmt_included = params[:course][:jmt_included]
+          if is_pmt_included.present? and is_ppt_included.present? and is_mmt_included.present? and is_jmt_included.present?
             pptpmt = IclPptpmtCourses.new
             pptpmt.course_id = @course.id
             pptpmt.pmt_included = is_pmt_included == "1"
             pptpmt.ppt_included = is_ppt_included == "1"
+            pptpmt.mmt_included = is_mmt_included == "1"
+            pptpmt.jmt_included = is_jmt_included == "1"
             pptpmt.save
           end
           # end
@@ -1990,7 +1994,10 @@ class CoursesController < ApplicationController
       #Imperial College London: PPT/PMT
       is_pmt_included = params[:course][:pmt_included]
       is_ppt_included = params[:course][:ppt_included]
-      if is_pmt_included != nil and is_ppt_included != nil
+      is_mmt_included = params[:course][:mmt_included]
+      is_jmt_included = params[:course][:jmt_included]
+      
+      if is_pmt_included.present? and is_ppt_included.present? and is_mmt_included.present? and is_jmt_included.present?
         pptpmt = Course.find(@course.id).icl_pptpmt_courses
         if pptpmt == nil
           pptpmt = IclPptpmtCourses.new
@@ -1998,6 +2005,8 @@ class CoursesController < ApplicationController
         end
         pptpmt.pmt_included = is_pmt_included == "1"
         pptpmt.ppt_included = is_ppt_included == "1"
+        pptpmt.mmt_included = is_mmt_included == "1"
+        pptpmt.jmt_included = is_jmt_included == "1"
         pptpmt.save
       end
       # end

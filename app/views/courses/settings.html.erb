@@ -326,6 +326,10 @@ TEXT
             <%= f.label :ppt_included, :en => "Include PPT as part of this course" %><br/>
 	    <%= f.check_box :pmt_included %>
             <%= f.label :pmt_included, :en => "Include PMT as part of this course" %><br/>
+	    <%= f.check_box :mmt_included %>
+            <%= f.label :mmt_included, :en => "Include MMT as part of this course" %><br/>
+	    <%= f.check_box :jmt_included %>
+            <%= f.label :jmt_included, :en => "Include JMT as part of this course" %><br/>
 	    <% end %>
 	    <!-- End -->
             <%= f.select :default_wiki_editing_roles, [

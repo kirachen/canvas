@@ -992,6 +992,10 @@ class AssignmentsApiController < ApplicationController
       sync_create_assignment get_ppt_courses
     elsif @context.contains_pmt?
       sync_create_assignment get_pmt_courses
+    elsif @context.contains_mmt?
+      sync_create_assignment get_mmt_courses
+    elsif @context.contains_jmt?
+      sync_create_assignment get_jmt_courses
     end
   end
 
@@ -1000,6 +1004,10 @@ class AssignmentsApiController < ApplicationController
       sync_update_assignment(get_ppt_courses, old_title, old_description)
     elsif @context.contains_pmt?
       sync_update_assignment(get_pmt_courses, old_title, old_description)
+    elsif @context.contains_mmt?
+      sync_update_assignment(get_mmt_courses, old_title, old_description)
+    elsif @context.contains_jmt?
+      sync_update_assignment(get_jmt_courses, old_title, old_description)
     end
   end
 
@@ -1032,6 +1040,14 @@ class AssignmentsApiController < ApplicationController
 
   def get_pmt_courses
     return Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
+  end
+
+  def get_mmt_courses
+    return Course.where("name = ? AND NOT workflow_state = ?", "MMT", "deleted")
+  end
+
+  def get_jmt_courses
+    return Course.where("name = ? AND NOT workflow_state = ?", "JMT", "deleted")
   end
 
   def replace_course_assignment_id_in_url(url, course_id, assignment_id)

@@ -75,14 +75,16 @@ class Course < ActiveRecord::Base
                   :course_format,
                   :time_zone,
                   :ppt_included, # Imperial College London: PPT/PMT
-                  :pmt_included # Imperial College London: PPT/PMT
+                  :pmt_included, # Imperial College London: PPT/PMT
+                  :mmt_included, # Imperial College London: PPT/PMT
+                  :jmt_included # Imperial College London: PPT/PMT
 
   EXPORTABLE_ATTRIBUTES = [
     :id, :name, :account_id, :group_weighting_scheme, :workflow_state, :uuid, :start_at, :conclude_at, :grading_standard_id, :is_public, :allow_student_wiki_edits,
     :created_at, :updated_at, :show_public_context_messages, :syllabus_body, :allow_student_forum_attachments, :default_wiki_editing_roles, :wiki_id, :allow_student_organized_groups,
     :course_code, :default_view, :root_account_id, :enrollment_term_id, :sis_source_id, :sis_batch_id, :show_all_discussion_entries, :open_enrollment, :storage_quota,
     :tab_configuration, :allow_wiki_comments, :turnitin_comments, :self_enrollment, :license, :indexed, :restrict_enrollments_to_course_dates, :template_course_id,
-    :locale, :settings, :replacement_course_id,  :public_description, :self_enrollment_code, :self_enrollment_limit, :abstract_course_id, :course_account_associations, :lti_context_id, :ppt_included, :pmt_included # Imperial College London: PPT/PMT
+    :locale, :settings, :replacement_course_id,  :public_description, :self_enrollment_code, :self_enrollment_limit, :abstract_course_id, :course_account_associations, :lti_context_id, :ppt_included, :pmt_included, :mmt_included, :jmt_included # Imperial College London: PPT/PMT
   ]
 
   EXPORTABLE_ASSOCIATIONS = [
@@ -267,26 +269,28 @@ class Course < ActiveRecord::Base
     self.name == "PMT"
   end
 
+  def is_mmt_course?
+    self.name == "MMT"
+  end
+
+  def is_jmt_course?
+    self.name == "JMT"
+  end
+
   def contains_ppt?
-    ppt_included_courses = IclPptpmtCourses.where("ppt_included = ?", true)
-    contains_ppt_course = false
-    ppt_included_courses.each do |c|
-      if c.course_id == self.id
-        contains_ppt_course = true
-      end
-    end
-    return contains_ppt_course
+    return IclPptpmtCourses.where("course_id=?", self.id).first.ppt_included?
   end
 
   def contains_pmt?
-    pmt_included_courses = IclPptpmtCourses.where("pmt_included = ?", true)
-    contains_pmt_course = false
-    pmt_included_courses.each do |c|
-      if c.course_id == self.id
-        contains_pmt_course = true
-      end
-    end
-    return contains_pmt_course
+    return IclPptpmtCourses.where("course_id=?", self.id).first.pmt_included?
+  end
+
+  def contains_mmt?
+    return IclPptpmtCourses.where("course_id=?", self.id).first.mmt_included?
+  end
+
+  def contains_jmt?
+    return IclPptpmtCourses.where("course_id=?", self.id).first.jmt_included?
   end
   # End
 
@@ -2078,7 +2082,7 @@ class Course < ActiveRecord::Base
       :turnitin_comments, :self_enrollment, :license, :indexed, :locale,
       :hide_final_grade, :hide_distribution_graphs,
       :allow_student_discussion_topics, :lock_all_announcements,
-      :ppt_included, :pmt_included # Imperial College London: PPT/PMT
+      :ppt_included, :pmt_included, :mmt_included, :jmt_included # Imperial College London: PPT/PMT
     ]
   end
 
@@ -2533,6 +2537,8 @@ class Course < ActiveRecord::Base
   # Imperial College London: PPT/PMT
   add_setting :ppt_included, :boolean => true, :default => false
   add_setting :pmt_included, :boolean => true, :default => false
+  add_setting :mmt_included, :boolean => true, :default => false
+  add_setting :jmt_included, :boolean => true, :default => false
   # End
   def user_can_manage_own_discussion_posts?(user)
     return true if allow_student_discussion_editing?

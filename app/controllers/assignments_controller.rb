@@ -498,22 +498,26 @@ class AssignmentsController < ApplicationController
   def sync_on_destroy
     if @context.contains_ppt?
       ppt_courses = Course.where("name = ? AND NOT workflow_state = ?", "PPT", "deleted")
-      ppt_courses.each do |ppt_course|
-        assignment = ppt_course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
-        if !assignment.empty?
-          assignment.destroy_all
-        end
-      end
+      destroy_assignment ppt_courses
     elsif @context.contains_pmt?
       pmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
-      pmt_courses.each do |pmt_course|
-        assignment = pmt_course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
-        if !assignment.empty?
-          assignment.destroy_all
-        end
-      end
+      destroy_assignment pmt_courses
+    elsif @context.contains_mmt?
+      mmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "MMT", "deleted")
+      destroy_assignment mmt_courses
+    elsif @context.contains_mmt?
+      jmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "JMT", "deleted")
+      destroy_assignment jmt_courses
     end
   end
+
+  def destroy_asssignment(courses)
+    courses.each do |course|
+      assignment = course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
+      if !assignment.empty?
+        assignment.destroy_all
+      end
+    end
 
   # Imperial College London: Cover Sheet
   # Coversheets will be generated under /app/icl_coversheet
