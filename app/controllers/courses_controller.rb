@@ -582,6 +582,13 @@ class CoursesController < ApplicationController
             pptpmt.jmt_included = is_jmt_included == "1"
             pptpmt.save
           end
+          # Imperial College London: Course Class
+          if params[:course][:class].present?
+            cls = IclCourseCls.new
+            cls.course_id = @course.id
+            cls.cls = params[:course][:class]
+            cls.save
+          end
           # end
           Auditors::Course.record_created(@course, @current_user, changes, source: (api_request? ? :api : :manual))
           @course.enroll_user(@current_user, 'TeacherEnrollment', :enrollment_state => 'active') if params[:enroll_me].to_s == 'true'
