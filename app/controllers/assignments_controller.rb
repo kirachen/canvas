@@ -306,6 +306,11 @@ class AssignmentsController < ApplicationController
 
     respond_to do |format|
       if @assignment && @assignment.send(method)
+        # Imperial College London: PPT/PMT
+        if !@context.is_ppt_course? and !@context.is_pmt_course? and !@context.is_mmt_course? and !@context.is_jmt_course?
+          sync_on_mute_toggle(@assignment.id, method)
+        end
+        # End
         format.json { render :json => @assignment }
       else
         format.json { render :json => @assignment, :status => :bad_request }
@@ -513,11 +518,29 @@ class AssignmentsController < ApplicationController
     end
   end
 
-  def destroy_asssignment(courses)
+  def destroy_assignment(courses)
     courses.each do |course|
       assignment = course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
       if !assignment.empty?
         assignment.destroy_all
+      end
+    end
+  end
+
+  # Imperial College London: PPT/PMT
+  # If an assignment for a course that contains small group
+  # is unmuted/muted(publishing grades/hiding grades)
+  # then the corresponding assignments in all small groups
+  # will be synced
+  def sync_on_mute_toggle(assignment_id, method)
+    if @context.contains_ppt? or @context.contains_pmt? or @context.contains_mmt? or @context.contains_jmt?
+      map = IclAssignmentMap.where("assignment_id=?", assignment_id).first
+      assignment_ids = map.small_group_assignment_ids.scan /\d+/
+      assignment_ids.each do |id|
+        if Assignment.exists? id
+          assignment = Assignment.find(id)
+          assignment.send(method)
+        end
       end
     end
   end
