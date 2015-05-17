@@ -617,7 +617,7 @@ CanvasRails::Application.routes.draw do
     resources :folders do
       get :download
     end
-
+    
     resources :calendar_events
     get 'external_tools/:id' => 'users#external_tool', as: :external_tool
     resources :rubrics
@@ -1047,7 +1047,7 @@ CanvasRails::Application.routes.draw do
       delete 'users/self/todo/:asset_string/:purpose', action: :ignore_item, as: 'users_todo_ignore'
       post 'accounts/:account_id/users', action: :create
       get 'accounts/:account_id/users', action: :index, as: 'account_users'
-
+      get 'accounts/:account_id/users_in', action: :get_users_with_class # Imperial College London: Getting a list of students within a specific class
       put 'users/:id', action: :update
       post 'users/:user_id/files', action: :create_file
 

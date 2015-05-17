@@ -388,7 +388,27 @@ class UsersController < ApplicationController
       end
     end
   end
-
+  
+  # Imperial College London: Getting a list of students within a specific class
+  def get_users_with_class
+    get_context
+    if authorized_action(@context, @current_user, :read_roster)
+        if api_request?
+          if params[:class]
+            users = User.joins('LEFT OUTER JOIN icl_student_cls ON icl_student_cls.user_id=users.id').where("cls=?", params[:class])
+          end
+          return render :json => users.map { |u| user_json(u, @current_user, session) }
+        respond_to do |format|
+          format.html
+          format.json {
+            cancel_cache_buster
+            expires_in 30.minutes
+            render(:json => users.map { |u| { :id => u.id } })
+          }
+        end
+      end
+    end
+  end
 
   before_filter :require_password_session, :only => [:masquerade]
   def masquerade
