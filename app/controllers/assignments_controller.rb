@@ -478,7 +478,9 @@ class AssignmentsController < ApplicationController
   def destroy
     @assignment = @context.assignments.active.find(params[:id])
     # Imperial College London: PPT/PMT
-    sync_on_destroy
+    if !@context.is_pmt_course? and !@context.is_ppt_course? and !@context.is_mmt_course? and !@context.is_jmt_course?
+      sync_on_destroy
+    end
     # End
     if authorized_action(@assignment, @current_user, :delete)
       @assignment.destroy
@@ -518,6 +520,7 @@ class AssignmentsController < ApplicationController
         assignment.destroy_all
       end
     end
+  end
 
   # Imperial College London: Cover Sheet
   # Coversheets will be generated under /app/icl_coversheet
