@@ -309,6 +309,10 @@ class AssignmentsController < ApplicationController
         # Imperial College London: PPT/PMT
         if !@context.is_ppt_course? and !@context.is_pmt_course? and !@context.is_mmt_course? and !@context.is_jmt_course?
           sync_on_mute_toggle(@assignment.id, method)
+        else
+          if method == :unmute!
+            surrender_marks(@assignment.id)
+          end
         end
         # End
         format.json { render :json => @assignment }
@@ -542,6 +546,50 @@ class AssignmentsController < ApplicationController
           assignment.send(method)
         end
       end
+    end
+  end
+
+  # Imperial College London: PPT/PMT - Submit Mark to the owner(s) of the assignment
+  def surrender_marks(assignment_id)
+    small_group_submissions = Submission.where("assignment_id=?", assignment_id)
+    user_to_submission = {}
+    small_group_submissions.each do |s|
+      user_to_submission[s.user_id] = s
+    end
+    map =  IclAssignmentMap.where("small_group_assignment_ids like ?", "%id:"+assignment_id.to_s+";%")
+    if map.exists?
+      original_assignment_id = map.first.assignment_id
+      user_to_submission.each do |user, submission|
+        original_submission = Submission.where("assignment_id=? AND user_id=?", original_assignment_id, user)
+        if original_submission.exists?
+          os = original_submission.first
+          os.grade = submission.grade
+          os.score = submission.score
+          os.save
+          sync_comments(submission.id, os.id)
+        else
+          # This is the case for hard-copy submission since by default there is no submission object
+          os = Submission.new
+          os.grade = submission.grade
+          os.score = submission.score
+          os.assignment_id = original_assignment_id
+          os.user_id = user
+          os.context_code = "course_" + @context.id.to_s
+          os.save
+          sync_comments(submission.id, os.id)
+        end  
+      end
+    end
+  end
+
+  def sync_comments(submission_id, original_submission_id)
+    SubmissionComment.where("submission_id = ?", submission_id).order(:created_at).each do |sc|
+      comment = SubmissionComment.new
+      comment.comment = sc.comment
+      comment.submission_id = original_submission_id
+      comment.created_at = sc.created_at
+      comment.context_id = sc.context_id
+      comment.save
     end
   end
 
