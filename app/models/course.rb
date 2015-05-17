@@ -221,9 +221,9 @@ class Course < ActiveRecord::Base
   has_many :usage_rights, as: :context, class_name: 'UsageRights', dependent: :destroy
 
   has_many :sis_post_grades_statuses
-  has_one :icl_pptpmt_courses #Imperial College London: PPT/PMT
-  has_one :icl_attendance #Imperial College London: PPT/PMT - Attendnace
-
+  has_one :icl_pptpmt_courses # Imperial College London: PPT/PMT
+  has_one :icl_attendance # Imperial College London: PPT/PMT - Attendnace
+  has_one :icl_course_cls # Imperial College London: Course Class
   include Profile::Association
 
   before_save :assign_uuid
@@ -259,7 +259,7 @@ class Course < ActiveRecord::Base
     end
 
   has_a_broadcast_policy
-
+  
   # Imperial College London: PPT/PMT
   def is_ppt_course?
     self.name == "PPT"
