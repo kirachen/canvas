@@ -973,9 +973,10 @@ class AssignmentsApiController < ApplicationController
     if update_api_assignment(@assignment, params[:assignment], @current_user)
       # Imperial College London: PPT/PMT
       if @create
-        sync_on_create
+        @assignment.send(:mute!) # Imperial College London: Muting assignment by default
+        sync_on_create @assignment.id
       elsif @update
-        sync_on_update(old_title, old_description)
+        sync_on_update @assignment.id
       end
       # End
       render :json => assignment_json(@assignment, @current_user, session), :status => 201
@@ -987,49 +988,58 @@ class AssignmentsApiController < ApplicationController
   end
 
   # Imperial College London: PPT/PMT
-  def sync_on_create
+  def sync_on_create(assignment_id)
     if @context.contains_ppt?
-      sync_create_assignment get_ppt_courses
+      sync_create_assignment(get_ppt_courses, assignment_id)
     elsif @context.contains_pmt?
-      sync_create_assignment get_pmt_courses
+      sync_create_assignment(get_pmt_courses, assignment_id)
     elsif @context.contains_mmt?
-      sync_create_assignment get_mmt_courses
+      sync_create_assignment(get_mmt_courses, assignment_id)
     elsif @context.contains_jmt?
-      sync_create_assignment get_jmt_courses
+      sync_create_assignment(get_jmt_courses, assignment_id)
     end
   end
 
-  def sync_on_update(old_title, old_description)
+  def sync_on_update(assignment_id)
     if @context.contains_ppt?
-      sync_update_assignment(get_ppt_courses, old_title, old_description)
+      sync_update_assignment assignment_id
     elsif @context.contains_pmt?
-      sync_update_assignment(get_pmt_courses, old_title, old_description)
+      sync_update_assignment assignment_id
     elsif @context.contains_mmt?
-      sync_update_assignment(get_mmt_courses, old_title, old_description)
+      sync_update_assignment assignment_id
     elsif @context.contains_jmt?
-      sync_update_assignment(get_jmt_courses, old_title, old_description)
+      sync_update_assignment assignment_id
     end
   end
 
-  def sync_create_assignment(courses)
+  def sync_create_assignment(courses, assignment_id)
     p = params[:assignment]
+    assignment_ids = ""
     courses.each do |course|
       p[:course_id] = course.id
       assignment = course.assignments.build
       assignment.workflow_state = 'unpublished'
       update_api_assignment(assignment, p, @current_user)
+      assignment.send(:mute!) # Imperial College London: Muting assignment by default
+      assignment_ids += "id:" + assignment.id.to_s + ";"
     end
+    map = IclAssignmentMap.new
+    map.assignment_id = assignment_id
+    map.small_group_assignment_ids = assignment_ids
+    map.save
   end
   
-  def sync_update_assignment(courses, old_title, old_description)
-    p = params[:assignment]
-    courses.each do |course|
-      assignment = course.assignments.active.where("title = ? AND description = ?", old_title, old_description)
-      if !assignment.empty?
-        p[:course_id] = course.id
-        p[:id] = assignment.first.id
-        p[:html_url] = replace_course_assignment_id_in_url(p[:html_url], course.id, assignment.first.id)
-        update_api_assignment(assignment.first, p, @current_user)
+  def sync_update_assignment(assignment_id)
+    new_params = params[:assignment]
+    map = IclAssignmentMap.where("assignment_id=?", assignment_id).first
+    assignment_ids = map.small_group_assignment_ids.scan /\d+/
+    assignment_ids.each do |id|
+      if Assignment.exists? id
+        assignment = Assignment.find(id)
+        new_params[:course_id] = assignment.context_id
+        new_params[:id] = assignment.id
+        new_params[:html_url] = replace_course_assignment_id_in_url(new_params[:html_url], assignment.context_id, assignment.id)
+        update_api_assignment(assignment, new_params, @current_user)
       end
     end
   end
