@@ -338,7 +338,12 @@ class EnrollmentsApiController < ApplicationController
       errors << @@errors[:missing_parameters] if params[:enrollment].blank?
     else
       return create_self_enrollment if params[:enrollment][:self_enrollment_code]
-
+      
+      # Imperial College London: Enabling enrolling with login
+      if params[:enrollment][:login].present? and params[:enrollment][:user_id].blank?
+        params[:enrollment][:user_id] = Pseudonym.where("unique_id=?", params[:enrollment][:login]).first.user_id
+      end
+      # End
       type = params[:enrollment].delete(:type)
 
       if role_id = params[:enrollment].delete(:role_id)
