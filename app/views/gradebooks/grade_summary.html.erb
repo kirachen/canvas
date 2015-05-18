@@ -116,6 +116,9 @@
   <div id="outcomes"></div>
 <% end %>
 
+<%# Imperial College London: PPT/PMT - Hiding the grades away for PPT/PMT groups %>
+<% if !@context.is_ppt_course? and !@context.is_pmt_course? and !@context.is_mmt_course? and !@context.is_jmt_course? %>
+<%# End %>      
 <div id="assignments">
 <table style="width: 100%;" id="grades_summary" class="<%= 'editable' if @presenter.editable? %>">
   <thead>
@@ -370,6 +373,11 @@
   <% end %>
 </table>
 </div>
+<%# Imperial College London: PPT/PMT - Hiding the marks for PPT/PMT groups %>
+<% else %>
+<text><%= image_tag "sound_mute.png", :alt => "" %><%= t(:student_mute_legend, "Please check your grade on the corresponding course page.") %></text>
+<% end %>
+<%# End %>
 <% if @presenter.has_muted_assignments? %>
   <small><%= image_tag "sound_mute.png", :alt => "" %><%= t(:student_mute_legend, "Your instructor is working on grades. While your instructor is working on grades, grade and comment information is unavailable.") %></small>
 <% end %>
