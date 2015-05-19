@@ -620,7 +620,7 @@ class AssignmentsController < ApplicationController
     due_date, due_time = params[:due_date].split(" ")
     due_at = Time.parse(due_date + " " + due_time)
     cover_sheet_name = params[:student_login] + params[:course_code] + params[:exercise_id] + ".pdf"
-    enrollment = Enrollment.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first
+    enrollment = Enrollment.active.where("type = ? AND course_id = ?", "TeacherEnrollment", params[:course_id]).first
     teacher = User.find(enrollment.user_id)
     student_cls = IclStudentCls.where("user_id=?", params[:student_id]).first.cls
     cover_sheet = IclCoverSheet.new(
