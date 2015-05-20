@@ -917,6 +917,7 @@ CanvasRails::Application.routes.draw do
       get "courses/:course_id/gradebook_history/feed", action: :feed, as: 'gradebook_history_feed'
       get "courses/:course_id/gradebook_history/:date", action: :day_details, as: 'gradebook_history_for_day'
       get "courses/:course_id/gradebook_history/:date/graders/:grader_id/assignments/:assignment_id/submissions", action: :submissions, as: 'gradebook_history_submissions'
+      get "courses/:course_id/grades", action: :get_grades # Imperial College London: Exporting grades in a course
     end
 
     get 'courses/:course_id/assignment_groups', controller: :assignment_groups, action: :index
@@ -1093,6 +1094,7 @@ CanvasRails::Application.routes.draw do
       get 'accounts/:id', action: :show, as: :account
       put 'accounts/:id', action: :update
       get 'accounts/:account_id/courses', action: :courses_api, as: 'account_courses'
+      get 'accounts/:account_id/courses_in', action: :get_courses_with_class # Imperial College London: Getting a list of courses within a specific class
       get 'accounts/:account_id/sub_accounts', action: :sub_accounts, as: 'sub_accounts'
       get 'accounts/:account_id/courses/:id', controller: :courses, action: :show, as: 'account_course_show'
       delete 'accounts/:account_id/users/:user_id', action: :remove_user

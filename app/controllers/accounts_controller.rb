@@ -315,6 +315,15 @@ class AccountsController < ApplicationController
     render :json => @courses.map { |c| course_json(c, @current_user, session, includes, nil) }
   end
 
+  # Imperial College London: Getting a list of courses within a specific class
+  def get_courses_with_class
+    return unless authorized_action(@account, @current_user, :read)
+    if params[:class]
+      courses = Course.active.joins('LEFT OUTER JOIN icl_course_cls ON icl_course_cls.course_id=courses.id').where("cls LIKE ?", "%"+params[:class]+"%")
+      return render :json => courses.map { |c| course_json(c, @current_user, session, [], nil) }
+    end
+  end
+  
   # Delegated to by the update action (when the request is an api_request?)
   def update_api
     if authorized_action(@account, @current_user, [:manage_account_settings, :manage_storage_quotas])

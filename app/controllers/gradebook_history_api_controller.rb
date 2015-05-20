@@ -312,6 +312,14 @@
     render :json => versions_json(@context, versions, api_context(nil), :assignment => assignment, :student => student)
   end
 
+  # Imperial College London: Listing grades in a course in csv format
+  def get_grades
+    if authorized_action(@context, @current_user, [:manage_grades, :view_all_grades])
+      csv = @context.gradebook_to_csv(:user => @current_user, :include_sis_id => @context.grants_any_right?(@current_user, session, :read_sis, :manage_sis))
+      render(:json => csv)
+    end
+  end 
+
   private
   def require_manage_grades
     authorized_action(@context, @current_user, :manage_grades)
