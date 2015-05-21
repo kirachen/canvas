@@ -323,6 +323,22 @@ class AccountsController < ApplicationController
       return render :json => courses.map { |c| course_json(c, @current_user, session, [], nil) }
     end
   end
+
+  # Imperial College London: Getting a courses with the course code
+  def get_course
+    return unless authorized_action(@account, @current_user, :read)
+    if params[:course_code]
+      courses = Course.active.where("course_code=?", params[:course_code])
+      return render :json => courses.map { |c| course_json(c, @current_user, session, [], nil) }
+    end
+  end
+
+  # Imperial College London: get student enrollments from a course with course_code
+  def student_enrollment
+    enrollments = 
+    enrollments = Enrollment.active.joins(:user).joins(:course).where("type=? AND course_code=?", "StudentEnrollment", params[:course_code])
+    render :json => enrollments.map { |e| enrollment_json(e, @current_user, session, [:user]) }
+  end
   
   # Delegated to by the update action (when the request is an api_request?)
   def update_api

@@ -1095,6 +1095,8 @@ CanvasRails::Application.routes.draw do
       put 'accounts/:id', action: :update
       get 'accounts/:account_id/courses', action: :courses_api, as: 'account_courses'
       get 'accounts/:account_id/courses_in', action: :get_courses_with_class # Imperial College London: Getting a list of courses within a specific class
+      get 'accounts/:account_id/course_code/:course_code', action: :get_course, :constraints => { :course_code => /[^\/]+/ } # Imperial College London: Getting course with the course code
+      get 'accounts/:account_id/course_code/:course_code/student_enrollments', action: :student_enrollment, :constraints => { :course_code => /[^\/]+/ } # Imperial College London: get student enrollments from a course with course_code
       get 'accounts/:account_id/sub_accounts', action: :sub_accounts, as: 'sub_accounts'
       get 'accounts/:account_id/courses/:id', controller: :courses, action: :show, as: 'account_course_show'
       delete 'accounts/:account_id/users/:user_id', action: :remove_user
