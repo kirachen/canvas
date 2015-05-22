@@ -23,6 +23,10 @@ class IclPaperSubmissionController < ApplicationController
           submission.user_id = member.user_id
           submission.assignment_id = assignment_id
           submission.save
+          record = IclSubmissionRecord.new
+          record.submission_id = submission.id
+          record.recorder_id = @current_user.all_active_pseudonyms.first.unique_id
+          record.save
         end
       else
         submission = Submission.new
@@ -30,6 +34,10 @@ class IclPaperSubmissionController < ApplicationController
         submission.user_id = user_id
         submission.assignment_id = assignment_id
         submission.save
+        record = IclSubmissionRecord.new
+        record.submission_id = submission.id
+        record.recorder_id = @current_user.all_active_pseudonyms.first.unique_id
+        record.save
       end
     end
     redirect_to action: "show"

@@ -44,6 +44,7 @@ class Submission < ActiveRecord::Base
   has_many :conversation_messages, :as => :asset # one message per private conversation
 
   has_many :content_participations, :as => :content
+  has_one :icl_submission_record # Imperial College London: Submission System
 
   EXPORTABLE_ATTRIBUTES = [
     :id, :body, :url, :attachment_id, :grade, :score, :submitted_at, :assignment_id, :user_id, :submission_type, :workflow_state, :created_at, :updated_at, :group_id,

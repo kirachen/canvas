@@ -313,7 +313,6 @@ module ApplicationHelper
           hide = tab[:hidden] || tab[:hidden_unused]
           class_name = tab[:css_class].downcase.replace_whitespace("-")
           class_name += ' active' if @active_tab == tab[:css_class]
-
           if hide
             tab[:label] += inactive_element
           end
@@ -327,8 +326,15 @@ module ApplicationHelper
           # Tab attendance has tab id 17
           # only shows if it is a PPT or PMT course and current user is not a student
           if tab[:id] == 17
-            if (@context.name == "PPT" || @context.name == "PMT") && !@context.user_is_student?(@current_user)
+            if (@context.name == "PPT" or @context.name == "PMT" or @context.name == "MMT" or @context.name == "JMT") && !@context.user_is_student?(@current_user)
               html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]
+            end
+            # Imperial College London: Paper submission system
+          elsif tab[:id] == 18
+            if @context.name != "PPT" and @context.name != "PMT" and @context.name != "MMT" and !@context.name != "JMT"
+              if @current_user.is_sao? or current_user_is_account_admin
+                html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]
+              end
             end
           else
             html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]

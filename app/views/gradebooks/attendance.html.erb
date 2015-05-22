@@ -1,7 +1,9 @@
 <!-- Imperial College London: PPT/PMT - Attendance -->
 <!-- This file exists but the feature is not supported -->
 <!-- So I took this file and made it into what I want it to be -->
-<% content_for :page_title do %><%= t(:page_title, "Attendance") %><% end %>
+<% content_for :page_title do %><%= t(:page_title, "Attendance") %>
+<% end %>
+<% @active_tab = "attendance" %>
 <style>
   #datagrid_topleft .content .cell, #datagrid_left .content .cell{
   border-left-width: 1px;

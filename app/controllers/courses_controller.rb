@@ -1034,6 +1034,21 @@ class CoursesController < ApplicationController
     end
   end
 
+  # Imperial College London: Paper submission system
+  def records
+    get_context
+    load_all_contexts(:context => @context)
+    add_crumb(t('#crumbs.records', "Records"), named_context_url(@context, :context_details_url))
+    @assignments = Assignment.active.where("context_id=? AND submission_types=?", @context.id, "on_paper")
+    enrollments = Enrollment.active.where("course_id=? AND type=?", @context.id, "StudentEnrollment")
+    @students = []
+    enrollments.each do |e|
+      @students.append(User.find(e.user_id))
+    end
+    @students.sort! { |a,b| a.sortable_name <=> b.sortable_name }
+  end
+  # End
+
   # @API Update course settings
   # Can update the following course settings:
   #

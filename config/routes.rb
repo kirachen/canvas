@@ -178,7 +178,7 @@ CanvasRails::Application.routes.draw do
 
     get 'undelete' => 'context#undelete_index', as: :undelete_items
     post 'undelete/:asset_string' => 'context#undelete_item', as: :undelete_item
-
+    get :records # Imperial College London: Submission system
     get "settings#{full_path_glob}", action: :settings
     get :settings
     get 'details' => 'courses#settings'
