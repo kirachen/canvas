@@ -37,6 +37,14 @@
           <div class="menu-item__text">Subscription</div>
       </a>
     </li>
+    <!-- Imperial College London: coversheet -->
+    <% if @current_user.is_sao? or current_user_is_account_admin %>
+    <li class="menu-item">
+      <a href="<%= icl_paper_submission_show_path %>" class="menu-item-no-drop">
+        <div class="menu-item__text">SAO</div>
+      </a>
+    </li>
+    <% end %>
     <!-- end -->
     
     <%# Inbox menu item currently only for K-12 %>

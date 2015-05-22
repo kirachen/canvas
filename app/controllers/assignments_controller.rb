@@ -600,10 +600,12 @@ class AssignmentsController < ApplicationController
     require 'time'
     assessment_type = "Individual"
     group_members = []
+    group_id = 0
     if params[:assignment_group_category_id] != nil
       assessment_type = "Group"
       @current_user.current_groups.each do |group|
         if group.group_category.id.to_s == params[:assignment_group_category_id]
+          group_id = group.id
           memberships = GroupMembership.active.where(:group_id => group.id)
           memberships.each do |membership|
             user = User.find(membership.user_id)
@@ -636,7 +638,8 @@ class AssignmentsController < ApplicationController
         issued_at, 
         due_at, 
         assessment_type,
-        group_members)
+        group_members,
+        group_id)
     cover_sheet.generate_cover_sheet
     cover_sheet_file = Rails.root.join('app', 'icl_coversheet', cover_sheet_name)
     cover_sheet.save_as (cover_sheet_file.to_s)

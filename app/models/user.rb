@@ -941,6 +941,13 @@ class User < ActiveRecord::Base
   def students
     [self]
   end
+  
+  # Imperial College London: see if the role of current user is SAO
+  def is_sao?
+    sao_role_id = Role.where("name=?", "SAO").first.id
+    return AccountUser.where("role_id=? AND user_id=?", sao_role_id, self.id).size != 0
+  end
+  # End
 
   def latest_pseudonym
     Pseudonym.order(:created_at).where(:user_id => id).active.last

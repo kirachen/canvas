@@ -8,6 +8,9 @@ Dir["{gems,vendor}/plugins/*/config/pre_routes.rb"].each { |pre_routes|
 CanvasRails::Application.routes.draw do
   resources :submission_comments, only: :destroy
 
+  get 'icl_paper_submission/show' # Imperial College London: Submission system
+  post 'icl_paper_submission/scan' # Imperial College London: Submission system
+
   get 'inbox' => 'context#inbox'
 
   get 'conversations/unread' => 'conversations#index', as: :conversations_unread, redirect_scope: 'unread'

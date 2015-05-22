@@ -9,7 +9,7 @@ class IclCoverSheet
 
   include Prawn::View
 
-  def initialize(student_name, student_id, student_class, lecturer_name, lecturer_id, course_title, course_id, exercise_title, exercise_id, issued_date, due_date, assessment_type, group_members)
+  def initialize(student_name, student_id, student_class, lecturer_name, lecturer_id, course_title, course_id, exercise_title, exercise_id, issued_date, due_date, assessment_type, group_members, group_id)
     @student_name = student_name
     @student_id = student_id
     @student_class = student_class
@@ -23,6 +23,7 @@ class IclCoverSheet
     @due_date = due_date
     @assessment_type = assessment_type
     @group_members = group_members
+    @group_id = group_id
     @year, @next_year = get_academic_year(Date.today)
     @rubric_line_y = 350
     font "Times-Roman"
@@ -127,11 +128,14 @@ class IclCoverSheet
     bounding_box([0, 30], :width => 540, :height => 30) do
       text_box @student_class + divider + @student_id + divider, :size => 18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
     end
-    bounding_box([0, 60], :width => 540, :height => 60) do
-      barcode_string = @year + @student_id + @course_id + @exercise_id
-      barcode_pos = {:x => 10, :y => 0, :height => 60}
+    barcode_string = @student_id + "exe" + @exercise_id + "grp" + @group_id.to_s
+    bounding_box([0, 60], :width => 540, :height => 55) do
+      barcode_pos = {:x => 10, :y => 10, :height => 55}
       barcode = Barby::Code128B.new barcode_string
       barcode.annotate_pdf(self, barcode_pos)
+    end
+    bounding_box([20, 10], :width => 540, :height => 12) do
+      text_box barcode_string, :size => 12, :align => :left
     end
   end
 

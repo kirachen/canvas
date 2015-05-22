@@ -335,7 +335,6 @@ class AccountsController < ApplicationController
 
   # Imperial College London: get student enrollments from a course with course_code
   def student_enrollment
-    enrollments = 
     enrollments = Enrollment.active.joins(:user).joins(:course).where("type=? AND course_code=?", "StudentEnrollment", params[:course_code])
     render :json => enrollments.map { |e| enrollment_json(e, @current_user, session, [:user]) }
   end

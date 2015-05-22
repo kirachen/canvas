@@ -1,0 +1,48 @@
+<% 
+   content_for :page_title, join_title(t(:page_title, "SAO"), @current_user.name)
+   add_crumb(@current_user.short_name, context_url(@current_user, :context_url))
+   add_crumb(t('crumbs.SAO', 'SAO'), icl_paper_submission_show_path)
+   %>
+<style>
+  .course {
+  font-size: 10px;
+  color: #999;
+  }
+  #barcode_container {
+  margin-top: 20px;
+  }
+</style>
+<table class="ic-Table ic-Table--hover-row">
+  <thead>
+    <tr class="ic-Table__row--bg-neutral">
+      <th>Upcoming assignment</th>
+      <th>FAOs</th>
+      <th>Due at</th>
+      <th>Expected submissions</th>
+      <th>Already submitted</th>
+    </tr>
+  </thead>
+  <% @assignments.each do |assignment| %>
+  <tr>
+    <th>
+      <div class="assignment"><%= assignment.title %></div>
+      <div class="course"><%= get_course_title assignment %></div>
+    </th>
+    <th>
+      <% get_faos(assignment).each do |fao| %>
+      <div><%= fao %></div>
+      <% end %>
+    </th>
+    <th><%= assignment.due_at.strftime("%a %b %d %H:%M:%S %Y") %></th>
+    <th><%= get_expected_number_submissions assignment %></th>
+    <th style="color:red"><%= get_actual_number_submissions assignment %></th>
+  </tr>
+  <% end %>
+</table>
+<div id="barcode_container">
+  Scan barcode:
+  <%= form_tag(:controller => "icl_paper_submission", :action => "scan") do %>
+  <%= text_field_tag "barcode" %>
+  <% end %>
+</div>
+
