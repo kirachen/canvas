@@ -30,6 +30,7 @@
 	<div>Submitted</div>
 	<% if Submission.where("assignment_id=? AND user_id=?", assignment.id, student.id).first.icl_submission_record.present? %>
 	<div class="recorder">recorded by <%=Submission.where("assignment_id=? AND user_id=?", assignment.id, student.id).first.icl_submission_record.recorder_id %> </div>
+	<div class="recorder">on <%=Submission.where("assignment_id=? AND user_id=?", assignment.id, student.id).first.icl_submission_record.created_at.asctime %> </div>
 	<% end %>
       </th>
       <% else %>
