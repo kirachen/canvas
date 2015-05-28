@@ -111,75 +111,7 @@ class GradebooksController < ApplicationController
     end
   end
   
-  # Imperial College London: PPT/PMT - Attendance
-  def new_entry
-    if @context.is_ppt_course? || @context.is_pmt_course?
-      new_entry_date = Date.strptime(params[:new_entry_date], "%m/%d/%Y")
-      if !IclAttendance.where(:course_id => params[:course_id], :tutoring_date => new_entry_date).exists?
-        attendance = IclAttendance.new
-        attendance.course_id = params[:course_id]
-        attendance.last_updated_by = @current_user.all_active_pseudonyms.first.unique_id
-        attendance.tutoring_date = new_entry_date
-        attendance.present_student = Array.new
-        attendance.absent_student = Array.new
-        @students = @context.students_visible_to(@current_user).order_by_sortable_name
-        @students.each do |student|
-          id = student.all_active_pseudonyms.first.unique_id
-          if params[id] == "1"
-            attendance.present_student.push(id)
-          else
-            attendance.absent_student.push(id)
-          end
-        end
-        attendance.save
-      end
-    end
-    respond_to do |format|
-      format.html do
-        redirect_to course_attendance_path
-      end
-    end
-  end
-
-  def remove_entry
-    id = params[:attendance]
-    attendance = IclAttendance.find(id)
-    attendance.destroy
-    respond_to do |format|
-      format.html do
-        redirect_to course_attendance_path
-      end
-    end
-  end
-
-  def update_attendance_entry
-    attendance_id = params[:attendance]
-    attendance = IclAttendance.find(attendance_id)
-    attendance.last_updated_by = @current_user.all_active_pseudonyms.first.unique_id
-    attendance.present_student = Array.new
-    attendance.absent_student = Array.new
-    @students = @context.students_visible_to(@current_user).order_by_sortable_name
-    @students.each do |student|
-      id = student.all_active_pseudonyms.first.unique_id
-      if params[id] == "1"
-        attendance.present_student.push(id)
-      else
-        attendance.absent_student.push(id)
-      end
-    end
-    attendance.save
-    respond_to do |format|
-      format.html do
-        redirect_to course_attendance_path
-      end
-    end
-  end
-  # End
-  
   def attendance
-    # Imperial College London: PPT/PMT - Attendance
-    @attendances = IclAttendance.where(:course_id => @context.id).order(:tutoring_date)
-    # End
     @enrollment = @context.all_student_enrollments.where(user_id: params[:user_id]).first if params[:user_id].present?
     @enrollment ||= @context.all_student_enrollments.where(user_id: @current_user).first if !@context.grants_right?(@current_user, session, :manage_grades)
     add_crumb t(:crumb, 'Attendance')

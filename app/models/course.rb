@@ -2290,7 +2290,7 @@ class Course < ActiveRecord::Base
       { :id => TAB_DISCUSSIONS, :label => t('#tabs.discussions', "Discussions"), :css_class => 'discussions', :href => :course_discussion_topics_path },
       { :id => TAB_GRADES, :label => t('#tabs.grades', "Grades"), :css_class => 'grades', :href => :course_grades_path, :screenreader => t('#tabs.course_grades', "Course Grades") },
       # Imperial College London: PPT/PMT - Attendance Sheet
-      { :id => TAB_ATTENDANCE, :label => t('#tabs.attendance', "Attendance"), :css_class => "attendance", :href => :course_attendance_path },
+      { :id => TAB_ATTENDANCE, :label => t('#tabs.attendance', "Attendance"), :css_class => "attendance", :href => :course_icl_attendance_path },
       # Imperial College London: Paper submission sysytem
       { :id => TAB_RECORDS, :label => t('#tabs.records', "Records"), :css_class => "records", :href => :course_records_path },
      # End

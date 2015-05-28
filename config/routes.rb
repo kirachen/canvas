@@ -179,6 +179,10 @@ CanvasRails::Application.routes.draw do
     get 'undelete' => 'context#undelete_index', as: :undelete_items
     post 'undelete/:asset_string' => 'context#undelete_item', as: :undelete_item
     get :records # Imperial College London: Submission system
+    get "icl_attendance" => 'icl_attendance#attendance' # Imperial College London: PPT/PMT - Attendance
+    post 'icl_attendance/new_entry' => 'icl_attendance#new_entry' # Imperial College London: PPT/PMT - Attendance
+    post 'icl_attendance/remove_entry' => 'icl_attendance#remove_entry' # Imperial College London: PPT/PMT - Attendance
+    post 'icl_attendance/update_attendance_entry' => 'icl_attendance#update_attendance_entry' # Imperial College London: PPT/PMT - Attendance
     get "settings#{full_path_glob}", action: :settings
     get :settings
     get 'details' => 'courses#settings'
@@ -202,9 +206,6 @@ CanvasRails::Application.routes.draw do
 
     get 'attendance' => 'gradebooks#attendance'
     get 'attendance/:user_id' => 'gradebooks#attendance', as: :attendance_user
-    post 'attendance/new_entry' => 'gradebooks#new_entry' # Imperial College London: PPT/PMT - Attendance
-    post 'attendance/update_attendance_entry' => 'gradebooks#update_attendance_entry' # Imperial College London: PPT/PMT - Attendance
-    post 'attendance/remove_entry' => 'gradebooks#remove_entry' # Imperial College London: PPT/PMT - Attendance
     concerns :zip_file_imports
     # DEPRECATED old migration emails pointed the user to this url, leave so the controller can redirect
     get 'imports/list' => 'content_imports#index', as: :import_list

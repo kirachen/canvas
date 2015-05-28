@@ -1,0 +1,101 @@
+<% content_for :page_title do %><%= t(:page_title, "Attendance") %>
+<% end %>
+<% @active_tab = "attendance" %>
+<style>
+  .student_name {
+  font-size: 17px;
+  }
+  .student_id {
+  font-size: 12px;
+  color: #999;
+  }
+  .tutoring_date {
+  font-size: 15px;
+  min-width: 135px;
+  }
+  #new_entry_date {
+  width: 100px;
+  height: 20px;
+  margin: auto;
+  }
+  form {
+  margin: 0px;
+  }
+  .update_btn {
+  margin-right: 5px;
+  display: inline-block;
+  }
+  .remove_btn {
+  display: inline-block;
+  }
+</style>
+<div class="v-gutter" id="attendance_content">
+  <table class="ic-Table ic-Table--hover-row">
+    <thead>
+      <tr class="ic-Table__row--bg-neutral">
+	<th id="top-left-corner"></th>
+	<% @students.each do |student| %>
+        <th id="student_<%= student.id %>" class="attedance_table_student">
+          <div class="student_name"><%= student.last_name_first %></div>
+          <div class="student_id"><%= student.all_active_pseudonyms.first.unique_id %></div>
+	</th>
+	<% end %>
+	<th> Recorded by </th>
+	<th id="top-right-corner"></th>
+      </tr>
+    </thead>
+    <% @attendances.each do |attendance| %>
+    <tr class="data-row">
+      <td>
+	<div class="tutoring_date"><%= attendance.tutoring_date.strftime("%a, %d %b %Y")%></div>
+      </td>
+      <%= form_tag(:controller => "icl_attendance", :action => "update_attendance_entry") do %>
+      <% @students.each do |student| %>
+      <td>
+	<% if attendance.present_student.include?(student.all_active_pseudonyms.first.unique_id) %>
+	<%= check_box_tag student.all_active_pseudonyms.first.unique_id, 1, true %>    
+	<% elsif attendance.absent_student.include?(student.all_active_pseudonyms.first.unique_id)%>
+	<%= check_box_tag student.all_active_pseudonyms.first.unique_id%>
+	<% end %>
+      </td>
+      <% end %>
+      <td>
+	<div>
+	  <%= attendance.last_updated_by %> 
+	</div>
+	<div class="student_id">
+	  on <%= attendance.updated_at.strftime("%d %b %Y") %>
+	</div>
+      </td>
+      <td style= "min-width: 121px">
+	<%= hidden_field_tag :attendance, attendance.id %> 
+	<%= submit_tag("Update", class: "Button Button--small update_btn") %>
+	<% end %>
+	<%= form_tag({:controller => "icl_attendance", :action => "remove_entry"}, :class => "remove_btn") do %>
+	<%= hidden_field_tag :attendance, attendance.id %>
+	<%= submit_tag("Delete ", class: "Button Button--danger Button--small") %>
+	<% end %>
+      </td>
+    </tr>
+    <% end %>
+    <%= form_tag(:controller => "icl_attendance", :action => "new_entry") do %>
+    <tr>
+      <td>
+	<%= text_field_tag "new_entry_date", "New entry"%>
+      </td>
+      <% @students.each do |student| %>
+      <td>
+	<%= check_box_tag student.all_active_pseudonyms.first.unique_id, 1, true %>
+      </td>
+      <% end %>
+      <td></td>
+      <td>
+	<%= submit_tag("Submit ", class: "Button Button--small", id: "submit_btn") %>
+      </td>
+    </tr>
+    <% end %>
+  </table>
+</div>
+<% jammit_css :datagrid, :attendance %>
+<% js_bundle :datagrid, :attendance %>
+

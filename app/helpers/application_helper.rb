@@ -326,7 +326,7 @@ module ApplicationHelper
           # Tab attendance has tab id 17
           # only shows if it is a PPT or PMT course and current user is not a student
           if tab[:id] == 17
-            if (@context.name == "PPT" or @context.name == "PMT" or @context.name == "MMT" or @context.name == "JMT") && !@context.user_is_student?(@current_user)
+            if (@context.name == "PPT" or @context.name == "PMT" or @context.name == "MMT" or @context.name == "JMT")
               html << "<li class='section #{"section-tab-hidden" if hide }'>" + link + "</li>" if tab[:href]
             end
             # Imperial College London: Paper submission system
