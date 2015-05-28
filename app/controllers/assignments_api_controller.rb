@@ -1045,19 +1045,55 @@ class AssignmentsApiController < ApplicationController
   end
 
   def get_ppt_courses
-    return Course.where("name = ? AND NOT workflow_state = ?", "PPT", "deleted")
+    courses = []
+    course_cls = @context.icl_course_cls
+    if course_cls.present?
+      classes = course_cls.cls.split(";")
+      classes.each do |c|
+        ppt = Course.active.joins(:icl_course_cls).where("name=? AND cls=?", "PPT", c)
+        courses = courses + ppt
+      end
+    end
+    return courses
   end
 
   def get_pmt_courses
-    return Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
+    courses = []
+    course_cls = @context.icl_course_cls
+    if course_cls.present?
+      classes = course_cls.cls.split(";")
+      classes.each do |c|
+        pmt = Course.active.joins(:icl_course_cls).where("name=? AND cls=?", "PMT", c)
+        courses = courses + pmt
+      end
+    end
+    return courses
   end
 
   def get_mmt_courses
-    return Course.where("name = ? AND NOT workflow_state = ?", "MMT", "deleted")
+    courses = []
+    course_cls = @context.icl_course_cls
+    if course_cls.present?
+      classes = course_cls.cls.split(";")
+      classes.each do |c|
+        mmt = Course.active.joins(:icl_course_cls).where("name=? AND cls=?", "MMT", c)
+        courses = courses + mmt
+      end
+    end
+    return courses
   end
 
   def get_jmt_courses
-    return Course.where("name = ? AND NOT workflow_state = ?", "JMT", "deleted")
+    courses = []
+    course_cls = @context.icl_course_cls
+    if course_cls.present?
+      classes = course_cls.cls.split(";")
+      classes.each do |c|
+        jmt = Course.active.joins(:icl_course_cls).where("name=? AND cls=?", "JMT", c)
+        courses = courses + jmt
+      end
+    end
+    return courses
   end
 
   def replace_course_assignment_id_in_url(url, course_id, assignment_id)
