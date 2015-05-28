@@ -573,15 +573,19 @@ class CoursesController < ApplicationController
           is_ppt_included = params[:course][:ppt_included]
           is_mmt_included = params[:course][:mmt_included]
           is_jmt_included = params[:course][:jmt_included]
+          pptpmt = IclPptpmtCourses.new
+          pptpmt.course_id = @course.id
+          pptpmt.pmt_included = false
+          pptpmt.ppt_included = false
+          pptpmt.mmt_included = false
+          pptpmt.jmt_included = false
           if is_pmt_included.present? and is_ppt_included.present? and is_mmt_included.present? and is_jmt_included.present?
-            pptpmt = IclPptpmtCourses.new
-            pptpmt.course_id = @course.id
             pptpmt.pmt_included = is_pmt_included == "1"
             pptpmt.ppt_included = is_ppt_included == "1"
             pptpmt.mmt_included = is_mmt_included == "1"
             pptpmt.jmt_included = is_jmt_included == "1"
-            pptpmt.save
           end
+          pptpmt.save
           # Imperial College London: Course Class
           if params[:course][:class].present?
             cls = IclCourseCls.new
