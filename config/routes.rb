@@ -180,6 +180,7 @@ CanvasRails::Application.routes.draw do
     post 'undelete/:asset_string' => 'context#undelete_item', as: :undelete_item
     get :records # Imperial College London: Submission system
     get "icl_attendance" => 'icl_attendance#attendance' # Imperial College London: PPT/PMT - Attendance
+    get "icl_student_attendance" => 'icl_attendance#student_attendance' # Imperial College London: PPT/PMT - Attendance
     post 'icl_attendance/new_entry' => 'icl_attendance#new_entry' # Imperial College London: PPT/PMT - Attendance
     post 'icl_attendance/remove_entry' => 'icl_attendance#remove_entry' # Imperial College London: PPT/PMT - Attendance
     post 'icl_attendance/update_attendance_entry' => 'icl_attendance#update_attendance_entry' # Imperial College London: PPT/PMT - Attendance

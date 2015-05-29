@@ -3,6 +3,21 @@ class IclAttendanceController < ApplicationController
   def attendance
     get_context
     add_crumb(t('#crumbs.attendance', "Attendance"), named_context_url(@context, :context_details_url))
+    if @context.user_is_student?(@current_user)
+      redirect_to action: "student_attendance"
+      return
+    end
+    @attendances = IclAttendance.where(:course_id => @context.id).order(:tutoring_date)
+    @students = @context.students_visible_to(@current_user).order_by_sortable_name
+  end
+
+  def student_attendance
+    get_context
+    add_crumb(t('#crumbs.attendance', "Attendance"), named_context_url(@context, :context_details_url))
+    if !@context.user_is_student?(@current_user)
+      redirect_to action: "attendance"
+      return
+    end
     @attendances = IclAttendance.where(:course_id => @context.id).order(:tutoring_date)
     @students = @context.students_visible_to(@current_user).order_by_sortable_name
   end
@@ -72,6 +87,4 @@ class IclAttendanceController < ApplicationController
       end
     end
   end
-
-
 end
