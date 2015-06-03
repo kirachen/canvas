@@ -30,10 +30,11 @@ class IclCoverSheet
   end
   
   def generate_cover_sheet
-    print_logo
-    move_down 24
-    print_department
     print_student
+    move_down 60
+    print_department
+    print_logo
+    move_down 27
     print_exercise
     move_down 20
     print_declaration
@@ -46,29 +47,46 @@ class IclCoverSheet
   end
 
   def print_logo
-    image "app/icl_images/imperial_logo.jpg", :width => 180, :height => 53, :position => :left, :at => [0, 700]
+    image "app/icl_images/imperial_logo.jpg", :width => 150, :height => 42, :position => :left, :at => [0, 660]
   end
-
+   
   def print_department
     text "Department of Computing", :align => :right, :size => 20
-    text "Academic Year " + @year + "-" + @next_year, :align => :right, :size => 12
-    text "Generated on " + Time.now.strftime("%a %b %d %H:%M:%S %Y"), :align => :right, :size => 12, :style => :italic
+    move_down 4
+    text "Academic Year " + @year + "-" + @next_year, :align => :right, :size => 15
   end
 
   def print_student
-    text_box @student_name + " (" + @student_id + ")", :align => :center, :size => 25, :at => [0, 600], :width => 540, :height => 100
+    text_box @student_name.upcase + " (" + @student_id + ")", :align => :center, :size => 25, :at => [0, 710], :width => 540, :height => 100
   end
 
   def print_exercise
-    bounding_box([20, 550], :width => 270, :height => 50) do
-      text @course_title, :align => :left, :size => 15
+    text "Exercise Information", :align => :center, :size => 20
+    bounding_box([0, 551], :width => 70, :height => 50) do
+      text "Course:", :style => :bold, :align => :right, :size => 15
+      text "FAO:", :style => :bold, :align => :right, :size => 15
+      text "Exercise:", :style => :bold, :align => :right, :size => 15
+    end
+    bounding_box([75, 550], :width => 190, :height => 50) do
+      text @course_title, :style => :bold, :align => :left, :size => 15
       text @lecturer_name, :align => :left, :size => 15
       text @exercise_title, :align => :left, :size => 15
     end
-    bounding_box([290, 550], :width => 270, :height => 50) do
-      text "Issued on " + @issued_date.strftime("%a %b %d %Y"), :size => 15, :indent_paragraphs => 20
-      text "Due on " + @due_date.strftime("%a %b %d %H:%M:%S %Y"), :size => 15, :indent_paragraphs => 20
-      text @assessment_type + " assessment ", :size => 15, :indent_paragraphs => 20
+    bounding_box([285, 551], :width => 80, :height => 50) do
+      text "Issued:", :style => :bold, :align => :right, :size => 15
+      text "Status:", :style => :bold, :align => :right, :size => 15
+      text "Assessment:", :style => :bold, :align => :right, :size => 15
+    end
+    status = ""
+    if (Time.now <=> @due_date) <= 0
+      status = "on time"
+    else 
+      status =  "late"
+    end
+    bounding_box([370, 550], :width => 180, :height => 50) do
+      text @issued_date.strftime("%a %b %d %Y"), :size => 15, :align => :left
+      text status, :size => 15, :align => :left
+      text @assessment_type, :size => 15, :align => :left
     end
   end
 
@@ -121,11 +139,11 @@ class IclCoverSheet
   
   def print_sort_info
     divider = "   "
-    bounding_box([0, 60], :width => 540, :height => 30) do
-      move_down(10)
+    bounding_box([0, 70], :width => 540, :height => 30) do
+      #move_down(10)
       text_box @course_id + divider + @lecturer_id + divider + @exercise_id, :size =>18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
     end
-    bounding_box([0, 30], :width => 540, :height => 30) do
+    bounding_box([0, 40], :width => 540, :height => 30) do
       text_box @student_class + divider + @student_id + divider, :size => 18, :align => :right, :valign => :center, :overflow => :shrink_to_fit
     end
     barcode_string = @student_id + "exe" + @exercise_id + "grp" + @group_id.to_s
