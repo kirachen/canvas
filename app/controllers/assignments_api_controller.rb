@@ -966,10 +966,6 @@ class AssignmentsApiController < ApplicationController
     end
     # End
     @assignment.content_being_saved_by(@current_user)
-    # Imperial College London: PPT/PMT
-    old_title = @assignment.name
-    old_description = @assignment.description
-    # End
     if update_api_assignment(@assignment, params[:assignment], @current_user)
       # Imperial College London: PPT/PMT
       if @create
@@ -1001,13 +997,7 @@ class AssignmentsApiController < ApplicationController
   end
 
   def sync_on_update(assignment_id)
-    if @context.contains_ppt?
-      sync_update_assignment assignment_id
-    elsif @context.contains_pmt?
-      sync_update_assignment assignment_id
-    elsif @context.contains_mmt?
-      sync_update_assignment assignment_id
-    elsif @context.contains_jmt?
+    if @context.contains_ppt? or @context.contains_pmt? or @context.contains_mmt? or @context.contains_jmt?
       sync_update_assignment assignment_id
     end
   end

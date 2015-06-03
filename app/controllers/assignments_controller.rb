@@ -307,9 +307,7 @@ class AssignmentsController < ApplicationController
     respond_to do |format|
       if @assignment && @assignment.send(method)
         # Imperial College London: PPT/PMT
-        if !@context.is_ppt_course? and !@context.is_pmt_course? and !@context.is_mmt_course? and !@context.is_jmt_course?
-          sync_on_mute_toggle(@assignment.id, method)
-        else
+        if @context.is_ppt_course? or @context.is_pmt_course? or @context.is_mmt_course? or @context.is_jmt_course?
           if method == :unmute!
             surrender_marks(@assignment.id)
           end
@@ -504,49 +502,23 @@ class AssignmentsController < ApplicationController
   # Imperial College London: PPT/PMT
   # If the assignment to be destroyed is contained
   # in a course that contains PPT or PMT courses,
-  # then it looks up all matching assignments(name and description
-  # since id is unique) and destroy them
+  # then it looks up all matching assignments and destroy them
   def sync_on_destroy
-    if @context.contains_ppt?
-      ppt_courses = Course.where("name = ? AND NOT workflow_state = ?", "PPT", "deleted")
-      destroy_assignment ppt_courses
-    elsif @context.contains_pmt?
-      pmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "PMT", "deleted")
-      destroy_assignment pmt_courses
-    elsif @context.contains_mmt?
-      mmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "MMT", "deleted")
-      destroy_assignment mmt_courses
-    elsif @context.contains_mmt?
-      jmt_courses = Course.where("name = ? AND NOT workflow_state = ?", "JMT", "deleted")
-      destroy_assignment jmt_courses
-    end
-  end
-
-  def destroy_assignment(courses)
-    courses.each do |course|
-      assignment = course.assignments.active.where("title = ? AND description = ?", @assignment.name, @assignment.description)
-      if !assignment.empty?
-        assignment.destroy_all
-      end
-    end
-  end
-
-  # Imperial College London: PPT/PMT
-  # If an assignment for a course that contains small group
-  # is unmuted/muted(publishing grades/hiding grades)
-  # then the corresponding assignments in all small groups
-  # will be synced
-  def sync_on_mute_toggle(assignment_id, method)
     if @context.contains_ppt? or @context.contains_pmt? or @context.contains_mmt? or @context.contains_jmt?
-      map = IclAssignmentMap.where("assignment_id=?", assignment_id).first
-      assignment_ids = map.small_group_assignment_ids.scan /\d+/
-      assignment_ids.each do |id|
-        if Assignment.exists? id
-          assignment = Assignment.find(id)
-          assignment.send(method)
-        end
+      destroy_assignment 
+    end
+  end
+
+  def destroy_assignment
+    map = IclAssignmentMap.where("assignment_id=?", @assignment.id).first
+    assignment_ids = map.small_group_assignment_ids.scan /\d+/
+    assignment_ids.each do |id|
+      if Assignment.exists? id
+        assignment = Assignment.find(id)
+        assignment.destroy
       end
     end
+    map.destroy
   end
 
   # Imperial College London: PPT/PMT - Submit Mark to the owner(s) of the assignment
@@ -568,7 +540,6 @@ class AssignmentsController < ApplicationController
           os.save
           sync_comments(submission.id, os.id)
         else
-          # This is the case for hard-copy submission since by default there is no submission object
           os = Submission.new
           os.grade = submission.grade
           os.score = submission.score
