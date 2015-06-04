@@ -30,6 +30,18 @@
       Project Portal
       </a>
     </li>
+       <li id="icl_project_calendar" class="menu-item">
+      <a href="<%= icl_calendar_index_path %>" class="menu-item-no-drop">
+      DOC Calendar
+      </a>
+    </li>
+    <% if @current_user.id == 1 then %>
+    <li id="doc_student_management" class="menu-item">
+      <a href="<%= doc_student_management_index_path %>" class="menu-item-no-drop">
+        DOC Student Management
+      </a>
+    </li>
+    <% end %>
     <%# Inbox menu item currently only for K-12 %>
     <% if k12? %>
       <% unless @current_user.fake_student? %>

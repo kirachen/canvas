@@ -3611,6 +3611,40 @@ ALTER SEQUENCE groups_id_seq OWNED BY groups.id;
 
 
 --
+-- Name: icl_audit_trails; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE icl_audit_trails (
+    id bigint NOT NULL,
+    icl_project_id integer,
+    user_id integer,
+    date timestamp without time zone,
+    entry character varying(255),
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+--
+-- Name: icl_audit_trails_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE icl_audit_trails_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: icl_audit_trails_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE icl_audit_trails_id_seq OWNED BY icl_audit_trails.id;
+
+
+--
 -- Name: icl_individual_projects; Type: TABLE; Schema: public; Owner: -; Tablespace: 
 --
 
@@ -3639,6 +3673,40 @@ CREATE SEQUENCE icl_individual_projects_id_seq
 --
 
 ALTER SEQUENCE icl_individual_projects_id_seq OWNED BY icl_individual_projects.id;
+
+
+--
+-- Name: icl_project_assignments; Type: TABLE; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE TABLE icl_project_assignments (
+    id bigint NOT NULL,
+    user_id integer,
+    icl_project_id integer,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL,
+    mark character varying(255),
+    second_marker_id integer
+);
+
+
+--
+-- Name: icl_project_assignments_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE icl_project_assignments_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: icl_project_assignments_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE icl_project_assignments_id_seq OWNED BY icl_project_assignments.id;
 
 
 --
@@ -3686,7 +3754,8 @@ CREATE TABLE icl_projects (
     updated_at timestamp without time zone NOT NULL,
     user_id integer,
     category integer,
-    course_id integer
+    course_id integer,
+    archived boolean
 );
 
 
@@ -4868,38 +4937,6 @@ CREATE SEQUENCE progresses_id_seq
 --
 
 ALTER SEQUENCE progresses_id_seq OWNED BY progresses.id;
-
-
---
--- Name: project_courses; Type: TABLE; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE TABLE project_courses (
-    id bigint NOT NULL,
-    icl_project_id integer,
-    course_id integer,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL
-);
-
-
---
--- Name: project_courses_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE project_courses_id_seq
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: project_courses_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE project_courses_id_seq OWNED BY project_courses.id;
 
 
 --
@@ -7337,7 +7374,21 @@ ALTER TABLE ONLY groups ALTER COLUMN id SET DEFAULT nextval('groups_id_seq'::reg
 -- Name: id; Type: DEFAULT; Schema: public; Owner: -
 --
 
+ALTER TABLE ONLY icl_audit_trails ALTER COLUMN id SET DEFAULT nextval('icl_audit_trails_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
 ALTER TABLE ONLY icl_individual_projects ALTER COLUMN id SET DEFAULT nextval('icl_individual_projects_id_seq'::regclass);
+
+
+--
+-- Name: id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY icl_project_assignments ALTER COLUMN id SET DEFAULT nextval('icl_project_assignments_id_seq'::regclass);
 
 
 --
@@ -7562,13 +7613,6 @@ ALTER TABLE ONLY profiles ALTER COLUMN id SET DEFAULT nextval('profiles_id_seq':
 --
 
 ALTER TABLE ONLY progresses ALTER COLUMN id SET DEFAULT nextval('progresses_id_seq'::regclass);
-
-
---
--- Name: id; Type: DEFAULT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY project_courses ALTER COLUMN id SET DEFAULT nextval('project_courses_id_seq'::regclass);
 
 
 --
@@ -8625,11 +8669,27 @@ ALTER TABLE ONLY groups
 
 
 --
+-- Name: icl_audit_trails_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY icl_audit_trails
+    ADD CONSTRAINT icl_audit_trails_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: icl_individual_projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
 --
 
 ALTER TABLE ONLY icl_individual_projects
     ADD CONSTRAINT icl_individual_projects_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: icl_project_assignments_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
+--
+
+ALTER TABLE ONLY icl_project_assignments
+    ADD CONSTRAINT icl_project_assignments_pkey PRIMARY KEY (id);
 
 
 --
@@ -8894,14 +8954,6 @@ ALTER TABLE ONLY profiles
 
 ALTER TABLE ONLY progresses
     ADD CONSTRAINT progresses_pkey PRIMARY KEY (id);
-
-
---
--- Name: project_courses_pkey; Type: CONSTRAINT; Schema: public; Owner: -; Tablespace: 
---
-
-ALTER TABLE ONLY project_courses
-    ADD CONSTRAINT project_courses_pkey PRIMARY KEY (id);
 
 
 --
@@ -10882,10 +10934,38 @@ CREATE INDEX index_groups_on_wiki_id ON groups USING btree (wiki_id) WHERE (wiki
 
 
 --
+-- Name: index_icl_audit_trails_on_icl_project_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_icl_audit_trails_on_icl_project_id ON icl_audit_trails USING btree (icl_project_id);
+
+
+--
+-- Name: index_icl_audit_trails_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_icl_audit_trails_on_user_id ON icl_audit_trails USING btree (user_id);
+
+
+--
 -- Name: index_icl_individual_projects_on_course_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
 --
 
 CREATE INDEX index_icl_individual_projects_on_course_id ON icl_individual_projects USING btree (course_id);
+
+
+--
+-- Name: index_icl_project_assignments_on_icl_project_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_icl_project_assignments_on_icl_project_id ON icl_project_assignments USING btree (icl_project_id);
+
+
+--
+-- Name: index_icl_project_assignments_on_user_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
+--
+
+CREATE INDEX index_icl_project_assignments_on_user_id ON icl_project_assignments USING btree (user_id);
 
 
 --
@@ -11299,20 +11379,6 @@ CREATE INDEX index_progresses_on_context_id_and_context_type ON progresses USING
 --
 
 CREATE INDEX index_progresses_on_user_id ON progresses USING btree (user_id);
-
-
---
--- Name: index_project_courses_on_course_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX index_project_courses_on_course_id ON project_courses USING btree (course_id);
-
-
---
--- Name: index_project_courses_on_icl_project_id; Type: INDEX; Schema: public; Owner: -; Tablespace: 
---
-
-CREATE INDEX index_project_courses_on_icl_project_id ON project_courses USING btree (icl_project_id);
 
 
 --
@@ -15274,10 +15340,18 @@ INSERT INTO schema_migrations (version) VALUES ('20150223181357');
 
 INSERT INTO schema_migrations (version) VALUES ('20150225214754');
 
-INSERT INTO schema_migrations (version) VALUES ('20150225215853');
-
 INSERT INTO schema_migrations (version) VALUES ('20150227011742');
 
 INSERT INTO schema_migrations (version) VALUES ('20150227013111');
 
 INSERT INTO schema_migrations (version) VALUES ('20150228203409');
+
+INSERT INTO schema_migrations (version) VALUES ('20150313235345');
+
+INSERT INTO schema_migrations (version) VALUES ('20150316005346');
+
+INSERT INTO schema_migrations (version) VALUES ('20150419173151');
+
+INSERT INTO schema_migrations (version) VALUES ('20150430194521');
+
+INSERT INTO schema_migrations (version) VALUES ('20150501103922');

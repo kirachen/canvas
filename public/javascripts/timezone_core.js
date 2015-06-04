@@ -3,6 +3,7 @@ define([
   "underscore",
   "require",
   "vendor/timezone"
+
 ], function($, _, require, tz) {
   // start with the bare vendor-provided tz() function
   var _tz = tz;

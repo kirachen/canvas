@@ -143,3 +143,5 @@ gem 'paginated_collection', :path => 'gems/paginated_collection'
 gem 'twitter', :path => 'gems/twitter'
 gem 'utf8_cleaner', :path => 'gems/utf8_cleaner'
 gem 'workflow', :path => 'gems/workflow'
+
+gem "font-awesome-rails"

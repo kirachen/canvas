@@ -1,3 +1,49 @@
+<br />
+<!--
+<div id="student_personal">
+<div class=""><%= @current_user.name %></div>
+<div class="pp_element">CID: </div>
+<div class="pp_element">E-Mail: <%= @current_user.email %></div>
+<div class="pp_element">Department: Computing</div>
+<div class="pp_element">Personal Tutor:</div>
+
+</div>
+-->
+
+
+<table>
+        <tbody><tr>
+          
+    <td rowspan="6">
+      <img style="border: 1px black;" height="130px" width="130px" src="http://www.hdrspotting.com/images/default_profile.jpg">
+    </td>
+          <td style="padding-left: 5px; text-align: left;" colspan="3"><b><%= @current_user.name %></b></td>
+        </tr>
+        <tr>
+          <td style="padding-left: 5px; text-align: left;"> Login: <b><%= @current_user.email %></b></td>
+          <td></td>
+          <td style="padding-left: 5px; text-align: left;"> CID: <b>0000000</b></td>
+        </tr>
+        <tr>
+          <td style="padding-left: 5px; text-align: left;" colspan="1"> Status: <b>Active</b>
+          </td>
+          <td></td>
+          <td style="padding-left: 5px; text-align: left;" colspan="1"> Department: <b>CO</b>
+        </td></tr>
+        <tr>
+          <td style="padding-left: 5px; text-align: left;" colspan="3"> Category: 
+            <b>Computing</b>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-left: 5px; text-align: left;" colspan="3"> Email: <b><%= @current_user.email %></b></td>
+        </tr>
+        <tr>
+          <td style="padding-left: 5px; text-align: left;" colspan="3"> Personal Tutor: <b>Unknown</b></td>
+        </tr>
+      </tbody></table>
+
+
 <h2 class="recent-activity-header">
   <% if @context.nil? || @context.is_a?(User) %>
     <%= t :recent_activity, "Recent Activity" %>

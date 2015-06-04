@@ -1,0 +1,273 @@
+<style>
+  #main {
+    max-width: 1300px;
+    background: #e0f9f9;
+  }
+
+  table {
+  	border-spacing: 2px;
+  	border-collapse: initial;
+  }
+</style>
+
+<div id="calendar">
+  
+<% from = Date.new(2015, 04, 25)
+   to = Date.new(2015, 06, 26)
+   weeks = ((to - from).to_f / 7).round
+%>
+
+<i class="fa fa-envelope-o"></i>
+    <table border="0">
+      <tbody>
+      <tr>
+          <th colspan="4"></th>
+      <% #Generating months 
+      (from.month..to.month).each do |month|
+      %>
+      <%
+        collspan = Time.days_in_month(month, Time.current().year)
+        if month == from.month then
+            collspan = collspan - from.day + 3
+        end
+
+        if month == to.month then
+            collspan = to.day
+        end
+       %>
+        
+          <th bgcolor="white" colspan="<%= collspan %>"><%= Date::MONTHNAMES[month] %></th>
+          <!--<th bgcolor="white" colspan="31">May </th>
+          <th bgcolor="white" colspan="26">June </th> -->
+      <% end %>
+
+        </tr>
+
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+          <% (1..weeks).each do |week_no| %>
+          <th bgcolor="white" colspan="7">Week <%= week_no %></th>
+          <% end %>
+        </tr>
+
+        <tr>
+          <th colspan="4"></th>
+          <!-- Dates -->
+          <% 
+           current = from
+           while current <= to do 
+
+            if ["Sat", "Sun"].include?(current.strftime("%a")) then
+                %>
+                <th></th>
+                <%
+            else %>
+                <th bgcolor="white"><%= current.day.to_s %></th>
+            
+            <% end %>
+
+            <%
+                current = current.tomorrow
+            %>
+
+           <% end %> 
+        </tr>
+
+        <tr>
+          <td colspan="3" align="right"><b><font color="blue">Subscribed</font>
+     <font color="blue">Deadlines</font></b>
+            <img src="icons/deadline_small.gif" align="center"></td>
+          <td></td>
+          <% 
+           current = from
+           while current <= to do 
+
+            if ["Sat", "Sun"].include?(current.strftime("%a")) then
+                %>
+                <td bgcolor="#e0f9f9" align="center"><font color="black">
+             <b></b></font></td>
+                <% elsif current == Date.today %>
+
+                <td bgcolor="LightSkyBlue" align="center"><font color="black">
+             <b></b></font></td>
+
+                <% else %>
+                
+                <td bgcolor="white" align="center"><font color="black">
+             <b></b></font></td>
+
+                <% end %>
+
+            <% current = current.tomorrow %>
+
+           <% end %> 
+           
+        </tr>
+
+        <tr>
+          <td colspan="3" align="right"><b><font color="red">Subscribed</font>
+     <font color="red">Tests</font></b>
+            <img src="icons/tests_small.gif" align="center"></td>
+          <td></td>
+          <% 
+           current = from
+           while current <= to do 
+
+            if ["Sat", "Sun"].include?(current.strftime("%a")) then
+                %>
+                <td bgcolor="#e0f9f9" align="center"><font color="black">
+             <b></b></font></td>
+                <% elsif current == Date.today %>
+
+                <td bgcolor="LightSkyBlue" align="center"><font color="black">
+             <b></b></font></td>
+
+                <% else %>
+                
+                <td bgcolor="white" align="center"><font color="black">
+             <b></b></font></td>
+
+                <% end %>
+
+            <% current = current.tomorrow %>
+
+           <% end %> 
+          
+        </tr>
+
+        <tr>
+          <th></th>
+          <th bgcolor="white" colspan="2">Module</th>
+          <%
+            colspan0 = Date.today - from + 1
+          %>
+
+          <td colspan="<%= colspan0 %>"></td>
+          <td bgcolor="LightSkyBlue"></td>
+        </tr>
+
+        <tr>
+          <td colspan="3"></td>
+          <td bgcolor="#8ef9f9" colspan="<%= colspan0 %>"></td>
+          <td bgcolor="LightSkyBlue"></td>
+          <td bgcolor="#8ef9f9" colspan="49"></td>
+        </tr>
+
+        <%
+            Course.all().each do |course|
+            #course = Course.find(3)
+                if is_main_admin(@current_user) || is_teacher_in_course(@current_user, course) || is_student_in_course(@current_user, course) then
+                    rows = get_calendar_event_view(course)
+                   
+        %>
+        <tr><td colspan="3"></td><td bgcolor="#8ef9f9" colspan="78"></td></tr>
+        <tr>
+          <td rowspan="<%= rows.length %>" ></td>
+          <td rowspan="<%= rows.length %>" bgcolor="white" align="centre" colspan="2"><b><%= course.name %></b><br /></td>
+          <!--<td bgcolor="#cdcdcd" align="center"></td> (only when it bagan before the term started)-->
+
+        <%
+        
+             (0..(rows.length-1)).each do |i|
+                from_aux = from
+                row = rows[i]
+                if i > 0 then
+                    %>
+                    <tr>
+                    <%
+                end
+                span = 0
+                row.each do |assignment|
+                    start_date = assignment.unlock_at.to_date
+                    end_date = assignment.lock_at.to_date
+                    p start_date
+                    if start_date > from_aux then
+                        colspan_1 = (start_date - from_aux).to_i + 1 + (if span==0 then 0 else -3 end)
+                        %>
+                        <td colspan="<%= colspan_1 %>"></td>
+                        <%
+                    else
+                        start_date = from_aux
+                    end
+
+                    if end_date > to then
+                        end_date = to
+                    end
+                        colspan2 = (end_date - start_date).to_i + (if span==0 then 2 else 0 end)
+                        span = 1
+                    %>
+                        <td bgcolor="#cdcdcd" colspan="<%= colspan2 %>">
+                    <% 
+                        if start_date <= Date.today && Date.today <= end_date then
+                    %>
+                        <a href="<%= Rails.application.routes.url_helpers.course_assignment_path(:course_id =>course.id, :id=>assignment.id) %>"><%= assignment.title %></a>
+                    <%
+                        else
+                    %>
+                            <%= assignment.title %>
+                            <% end %>
+                        </td>
+                    <%
+                        from_aux = end_date
+                end
+                    %>
+                    </tr>
+                    <%
+             end   
+        %>
+
+        <%
+                end
+            end
+        %>
+        
+    <!--       
+          <td bgcolor="#cdcdcd" colspan="59">
+            <b>4:PROJ</b> <a href="handins.cgi?key=2014:5:340:c4:new:mmj11" title="Hand-in (on-line declaration, e-submission)"> Preliminary Source Code Archive</a>            
+          </td>
+        </tr>
+        <tr>
+          <td bgcolor="#cdcdcd" align="center"></td>
+          <td bgcolor="#cdcdcd" colspan="63">
+            <b>5:PROJ</b> <a href="handins.cgi?key=2014:5:341:c4:new:mmj11" title="Hand-in (on-line declaration, e-submission)">Final Project Archive</a>
+          </td>
+          <td align="center" bgcolor="#cdcdcd"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td colspan="13"></td>
+          <td bgcolor="LightSkyBlue">&nbsp;</td>
+          <td colspan="13"></td>
+          <td bgcolor="#ccffcc" colspan="26">
+            <b>2:REP</b> Final Report</td>
+
+          <td colspan="5"></td>
+          <td bgcolor="#cdcdcd" colspan="5">
+            <b>6:REP</b> Destinations           
+          </td>
+          <td align="center" bgcolor="#cdcdcd"></td>
+        </tr>
+        <tr>
+          <td></td>
+          <td colspan="13"></td>
+          <td bgcolor="LightSkyBlue">&nbsp;</td>
+          <td colspan="44"></td>
+          <td bgcolor="#cdcdcd" colspan="5">
+            <b>7:REP</b> Tips for Future Students
+          </td>
+          <td align="center" bgcolor="#cdcdcd"></td>
+        </tr>
+        <tr>
+          <td colspan="3"></td>
+          <td bgcolor="#8ef9f9" colspan="14"></td>
+          <td bgcolor="LightSkyBlue"></td>
+          <td bgcolor="#8ef9f9" colspan="49"></td>
+        </tr>
+        
+-->
+      </tbody>
+    </table>
+</div>
