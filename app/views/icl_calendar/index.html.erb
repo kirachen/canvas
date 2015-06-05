@@ -199,7 +199,7 @@
                         colspan2 = (end_date - start_date).to_i + (if span==0 then 2 else 0 end)
                         span = 1
                     %>
-                        <td bgcolor="#cdcdcd" colspan="<%= colspan2 %>">
+                        <td bgcolor="<%= get_color(assignment) %>" colspan="<%= colspan2 %>">
                     <% 
                         if start_date <= Date.today && Date.today <= end_date then
                     %>

@@ -9,7 +9,7 @@
     list-style: none;
 }
 </style>
-<%= params["project_id"] %>
+
 <h2>Assessment for project</h2>
 <ul id="comments" class="comments">
 	<% audit_trail = get_audit_trail(params["student_id"], params["project_id"]) %>

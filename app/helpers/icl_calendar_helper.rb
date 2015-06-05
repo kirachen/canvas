@@ -8,23 +8,34 @@ module IclCalendarHelper
         end
     end
 
-	def get_calendar_event_view(course)
-		assignments = course.assignments.select{|a| a.workflow_state=="published"}.sort_by{|a| a.lock_at}
-		rows = []
-		while assignments.length > 0 do
-			row = []
+    def get_calendar_event_view(course)
+        assignments = course.assignments.select{|a| a.workflow_state=="published"}.sort_by{|a| a.lock_at}
+        rows = []
+        while assignments.length > 0 do
+            row = []
 
-			assignments.delete_if do |assignment|
+            assignments.delete_if do |assignment|
                 p assignment
-				if row.length == 0 || row.last.lock_at <= assignment.unlock_at
-					row.append(assignment)
+                if row.length == 0 || row.last.lock_at <= assignment.unlock_at
+                    row.append(assignment)
                     true
-				end
-			end
+                end
+            end
             
-			rows.append(row)
+            rows.append(row)
             p assignments.length
-		end
+        end
         return rows
-	end
+    end
+
+    def get_color(assignment)
+        if assignment[:submission_types] == "online_text_entry" then
+            return "#ccffcc"
+        elsif assignment[:submission_types] == "online_upload" then
+            return "#f0ccf0"
+        elsif assignment[:submission_types] == "none" then
+            return "white"
+        end
+        "#cdcdcd"
+    end
 end

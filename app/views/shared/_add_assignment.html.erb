@@ -22,9 +22,13 @@
         </td>
       </tr><tr>
         <td><%= f.blabel :points_possible, :en => "Points" %></td>
+
         <td><%= f.text_field :points_possible, :style => "width: 50px;" %></td>
+        </tr><tr>
+        <td><%= f.blabel :assignment_calendar_group, :en => "Assignment type" %></td>
+        <td><%= f.text_field :title, :style => "width:150px;" %></td>
       </tr><tr>
-        <td style="vertical-align: top;"><%= f.blabel :due_at, :en => "Due" %></td>
+        <td style="vertical-align: top;"><%= f.blabel :due_at, :en => "Due" %>TEST</td>
         <td><%= f.text_field :due_at, :style => "width: 100px;", :class => "datetime_field" %></td>
       </tr><tr>
         <td class="button-container" colspan="2">
