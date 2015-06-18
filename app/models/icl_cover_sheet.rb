@@ -77,15 +77,17 @@ class IclCoverSheet
       text "Status:", :style => :bold, :align => :right, :size => 15
       text "Assessment:", :style => :bold, :align => :right, :size => 15
     end
-    status = ""
+    onTime = false
     if (Time.now <=> @due_date) <= 0
-      status = "on time"
-    else 
-      status =  "late"
+      onTime = true
     end
     bounding_box([370, 550], :width => 180, :height => 50) do
       text @issued_date.strftime("%a %b %d %Y"), :size => 15, :align => :left
-      text status, :size => 15, :align => :left
+      if onTime
+        text "On time", :size => 15, :align => :left
+      else
+        text "Late", :size => 15, :align => :left, :color => "DC143C"
+      end
       text @assessment_type, :size => 15, :align => :left
     end
   end
