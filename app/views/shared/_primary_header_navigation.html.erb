@@ -5,6 +5,9 @@
       <%= render(:partial => 'shared/home_menu') %>
     </li>
     <%- end -%>
+    <%# Imperial College London: Removing unneeded tag: grades %>
+    <%# As it only displays final grades for each course %>
+    <!--
     <li id="grades_menu_item" class="menu-item">
       <a href="<%= grades_path %>" class="menu-item-no-drop">
         <% if k12? %>
@@ -14,7 +17,7 @@
         <%= t('menu.grades', 'Grades') %>
         <% if k12? %></div><% end %>
       </a>
-    </li>
+    </li> -->
     <li id="calendar_menu_item" class="menu-item">
       <a href="<%= calendar_path %>" class="menu-item-no-drop">
         <% if k12? %>
