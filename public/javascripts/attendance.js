@@ -191,7 +191,14 @@ define([
       }
     });
     $(".datetime_field").datetime_field();
-    $("#new_entry_date").datepicker();  // Imperial College London: PPT/PMT - Attendance
+    // Imperial College London: PPT/PMT - Attendance
+    $("#new_entry_date").datepicker();  
+    $("#submit_btn").click(function() {
+	if ($("#new_entry_date").val() == "Select date"){
+	    alert("Please select a date!");
+	}
+    });
+    // End
     $(".help_link").click(function(event) {
       event.preventDefault();
       $("#attendance_how_to_dialog").dialog({

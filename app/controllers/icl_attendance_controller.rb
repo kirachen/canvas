@@ -24,6 +24,10 @@ class IclAttendanceController < ApplicationController
 
   def new_entry
     get_context
+    if params[:new_entry_date] == "Select date"
+      redirect_to action: "attendance"
+      return
+    end
     if @context.name == "PPT" || @context.name == "PMT" || @context.name == "MMT" || @context.name == "JMT"
       new_entry_date = Date.strptime(params[:new_entry_date], "%m/%d/%Y")
       if !IclAttendance.where(:course_id => params[:course_id], :tutoring_date => new_entry_date).exists?
