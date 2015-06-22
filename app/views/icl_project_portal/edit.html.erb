@@ -1,0 +1,17 @@
+<%= render "shared/icl_pp_sidebar" %>
+
+<h2>Edit project</h2>
+<%= form_tag(controller: "icl_project_portal", action: "go_edit", method: "post") do %>
+  <%= label_tag(:title, "Project Title:") %>
+  <br />
+  <%= text_field_tag(:title, nil, :class => 'course_form', :value => @project.title) %>
+  <br />
+  <%= label_tag(:description, "Project Description:") %>
+  <br />
+  <%= text_area_tag(:description, @project.description, :cols => 5, :rows => 10, :class => "span4", ) %>
+  <br />
+  <%= hidden_field_tag 'project_id', @project.id %>
+  <%= submit_tag("Edit Project", :class => 'btn btn-primary') %>
+<% end %>
+
+<%= render "shared/icl_pp_footer" %>

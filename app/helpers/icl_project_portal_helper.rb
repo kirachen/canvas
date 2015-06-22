@@ -57,6 +57,10 @@ module IclProjectPortalHelper
         IclProject.where(:course_id => course)
     end
 
+    def get_project_popularity(project)
+        IclProjectChoice.where({icl_project_id: project}).map{|c| c.preference}.inject{|sum,x| (sum+7-x)}
+    end
+
     def get_possible_choices(user, project_id)
         project = IclProject.where(:id => project_id).first()
         preferenes_chosen = IclProjectChoice.where(:user_id => user, :icl_project_id => IclProject.where(:course_id=>project.course)).map(&:preference)
@@ -76,8 +80,16 @@ module IclProjectPortalHelper
 
     end
 
+    def is_project_assigned_to(user, project)
+        IclProjectAssignment.where(:user_id => user, :icl_project_id => project).any?
+    end
+
     def get_choices_for_user(user, course)
         IclProjectChoice.where(:user_id => user, :icl_project_id => IclProject.where(:course_id=>course)).order(:preference)
+    end
+
+    def get_choices_for_project(project)
+        IclProjectChoice.where(:icl_project_id => project)
     end
 
     def get_assigned_project(user, course)
@@ -121,7 +133,7 @@ module IclProjectPortalHelper
     end
 
     def get_audit_trail(user_id, icl_project_id)
-        IclAuditTrail.where(:user_id => User.find(user_id), :icl_project_id => IclProject.find(icl_project_id))
+        IclAuditTrail.where(:icl_project_id => IclProject.find(icl_project_id))
     end
 
 end

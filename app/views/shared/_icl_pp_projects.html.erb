@@ -4,7 +4,6 @@
       <th>Name</th>
       <th>Course</th>
       <th>Supervisor</th>
-      <th>Description</th>
       <th>Your choice</th>
       <th>Select</th>
     </tr>
@@ -18,17 +17,35 @@
       <% get_course_projects(course).each do |project| %>
       <% modal_id = "dialog" + project.id.to_s %>
         <tr>
-        <td>  <%= project.title %> </td>
+        <td><a class="element_toggler" aria-controls=<%= modal_id %>>  <%= project.title %> </a></td>
         <td> <%= course.name %> </td>
         <td>  <%= project.user.name if project.user %></td>
         
           
-        <td><a class="element_toggler" aria-controls=<%= modal_id %>>Show</a></td>
+        
 
         <div id="<%= modal_id %>" data-turn-into-dialog='{"width":600,"modal":true}' style="display:none" title="<%= project.title %>">
           <%= project.description %>
           <div class="button-container">
             <a class="btn dialog_closer">Close</a>
+            <% if project.user then
+                if is_main_admin(project.user) or is_teacher_in_course(project.user, course) then
+
+             %>
+             <%= form_tag(controller: "icl_project_portal", action: "delete_project", method: "post") do %>
+                <%= hidden_field_tag 'project_id', project.id %>
+                <button type="submit" class="btn btn-danger">Delete</button>
+             <% end %>
+
+            <%= form_tag(controller: "icl_project_portal", action: "edit_project", method: "post") do %>
+                <%= hidden_field_tag 'project_id', project.id %>
+                <button type="submit" class="btn btn-primary">Edit</button>
+                
+             <% end %>
+            <% 
+            end
+              end
+             %>
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 class IclProjectPortalController < ApplicationController
 
-    include IclProjectPortalHelper
+include IclProjectPortalHelper
 
 
   def show
@@ -19,6 +19,31 @@ class IclProjectPortalController < ApplicationController
     @is_admin = is_main_admin(@current_user)
   end
 
+  def projects_popularity
+    @is_admin = is_main_admin(@current_user)
+    if request.post? then
+      course = Course.find(params[:course_id])
+      choices = IclProjectChoice.where(:icl_project_id => IclProject.where(:course_id => course))
+      #@log = choices[1].id
+      choices.each do |choice|
+
+        if params.has_key?(:choices) and params[:choices].include?(choice.id.to_s) then
+          assignments = IclProjectAssignment.where(:user_id => choice.user_id, :icl_project_id => choice.icl_project_id)
+          if assignments.empty? then
+            assignment = IclProjectAssignment.new()
+            assignment.user = User.find(choice.user_id)
+            assignment.icl_project = IclProject.find(choice.icl_project_id)
+            assignment.save()
+          end
+        else
+          IclProjectAssignment.where(:user_id => choice.user_id, :icl_project_id => choice.icl_project_id).delete_all()
+        end
+      end
+    end
+
+    @courses = Course.all()
+  end
+
   def assess
     #p "Here we go!"
     @is_admin = is_main_admin(@current_user)
@@ -27,7 +52,7 @@ class IclProjectPortalController < ApplicationController
     #p params[:comment]
     if params.include?(:comment)
       @audit_trail = IclAuditTrail.new(entry:params[:comment])
-      @audit_trail.user = User.find(params[:student_id])
+      @audit_trail.user = @current_user
       @audit_trail.icl_project = IclProject.find(params[:project_id])
       @audit_trail.save()
       #user_id:params[:student_id],icl_project_id:params[:project_id]
@@ -71,7 +96,24 @@ class IclProjectPortalController < ApplicationController
 
   end
 
+  def delete_project
+    IclProject.destroy(params[:project_id])
+    redirect_to :back
 
+  end
+
+  def go_edit
+    IclProject.update(params[:project_id], :description => params[:description], :title => params[:title])
+    redirect_to action: "course_projects"
+  end
+
+  def edit
+    @project = IclProject.find(params[:projectid])
+  end
+
+  def edit_project
+    redirect_to :action => "edit", :projectid => IclProject.find(params[:project_id]) 
+  end
 
   def choose_indiv
     choose_project(params)
@@ -84,7 +126,6 @@ class IclProjectPortalController < ApplicationController
   end
   def choose
     p "Parameters"
-    p params
     preference = params[:preference]
 
     IclProjectChoice.where(:icl_project_id => params[:project_id], :user_id => @current_user).destroy_all()

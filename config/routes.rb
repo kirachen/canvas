@@ -12,6 +12,7 @@ CanvasRails::Application.routes.draw do
   get "icl_calendar/index"
 
   get "icl_project_portal/create"
+
   get "icl_project_portal/your_projects"
   get "icl_project_portal/project_assignments"
   post "icl_project_portal/create_project"
@@ -21,7 +22,13 @@ CanvasRails::Application.routes.draw do
   post "icl_project_portal/assign_projects"
   get "icl_project_portal/show"
   get "icl_project_portal/assess"
+  get "icl_project_portal/edit"
+  get "icl_project_portal/projects_popularity"
+  post "icl_project_portal/projects_popularity"
   post "icl_project_portal/assess"
+  post "icl_project_portal/delete_project"
+  post "icl_project_portal/go_edit"
+  post "icl_project_portal/edit_project"
   get "icl_project_portal/course_projects"
   get "icl_project_portal/individual_projects"
   post "icl_project_portal/choose_individual_project_course"

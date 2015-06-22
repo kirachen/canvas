@@ -1,0 +1,40 @@
+<%= render "shared/icl_pp_sidebar" %>
+
+<% @courses.each do |course| %>
+    <% if course_has_projects(course) %>
+    <h1><%= course.name %></h1>
+    <hr />
+    <%
+
+    projects = get_course_projects(course)
+    projects_tuple = projects.map{|project| [project, (get_project_popularity(project) or 0)]}.sort_by{|project_tuple| project_tuple[1]}.reverse
+    %>
+        <%= form_tag(controller: "icl_project_portal", action: "projects_popularity", method: "post") do %>
+        <%= hidden_field_tag 'course_id', course.id %>
+            <% projects_tuple.each do |project_tuple| %>
+                <h5><b><%= project_tuple[0].title %></b></h5> 
+                <h5>Popularity: <%= project_tuple[1] %> points</h5>
+                <ul style="list-style-type:none;">
+                <% 
+
+                    user_choices = get_choices_for_project(project_tuple[0])
+                    user_choices.each do |choice|
+                %>
+
+
+                    <li> <%= check_box_tag "choices[]", choice.id, is_project_assigned_to(choice.user, project_tuple[0]) %> <%= choice.user.name %> (Perference #<%= choice.preference %>)</li>
+
+            <% end %>
+            </ul>
+            
+        <% end %>
+                <%= submit_tag("Assign", :class => 'btn btn-small') %>
+            <br />
+    <% end %>
+<% end %>
+
+    <br />
+<% end %>
+
+
+<%= render "shared/icl_pp_footer" %>
